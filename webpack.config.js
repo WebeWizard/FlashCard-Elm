@@ -70,7 +70,7 @@ if ( TARGET_ENV === 'development' ) {
           loader:  'elm-hot!elm-webpack?verbose=true&warn=true&debug=true'
         },
         {
-          test: /\.(css|scss)$/,
+          test: /\.(css|sass|scss)$/,
           loaders: [
             'style-loader',
             'css-loader',

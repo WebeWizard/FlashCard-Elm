@@ -34,7 +34,7 @@ update msg model =
 -- CSS can be applied via class names or inline style attrib
 view : Model -> Html Msg
 view model =
-  div [ class "container", style [("margin-top", "30px"), ( "text-align", "center" )] ][    -- inline CSS (literal)
+  div [ class "hero is-primary", style [("margin-top", "30px"), ( "text-align", "center" )] ][    -- inline CSS (literal)
     div [ class "row" ][
       div [ class "col-xs-12" ][
         div [ class "jumbotron" ][
