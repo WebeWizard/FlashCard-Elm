@@ -1,6 +1,4 @@
 import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing ( onInput )
 
 import Components.SiteHeader exposing ( siteheader )
 import Game
@@ -28,12 +26,8 @@ type Msg
 update : Msg -> Model -> Model
 update msg model =
   case msg of
-    GameMsg gameMsg ->
-      case gameMsg of
-        Game.TextMsg textMsg ->
-          { model | name = textMsg }
-        _ ->
-          { model | name = "Webe" }
+    GameMsg subMsg ->
+      { model | game = Game.update subMsg model.game }
 
 
 -- VIEW

@@ -22,13 +22,14 @@ rightcardmodel : Card.Model
 rightcardmodel =
   {
     question = "",
-    answer = "hello",
+    answer = "안녕하세요",
     guess = ""
   }
 
 flashcard10model : FlashCard10.Model
 flashcard10model =
   {
+    solved = False,
     leftCard = leftcardmodel,
     rightCard = rightcardmodel
   }

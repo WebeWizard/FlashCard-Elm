@@ -3,7 +3,6 @@ module Components.Card exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing ( onInput )
-import String
 
 -- Game Model
 type alias Model =
