@@ -23,6 +23,7 @@ toFlashCard words =
       solved = False,
       leftCard =
         {
+          solved = False,
           hidden = True,
           question = question,
           answer = "",
@@ -30,6 +31,7 @@ toFlashCard words =
         },
       rightCard =
         {
+          solved = False,
           hidden = True,
           question = "",
           answer = answer,
@@ -61,11 +63,12 @@ flashcard : Model -> Html Msg
 flashcard model =
   div [ class "container", style [("text-align","center"),("display","inline-block")] ][
     Html.map CardMsg (Card.card model.leftCard),
-    Html.map CardMsg (Card.card model.rightCard),
+    Html.map CardMsg (Card.card model.rightCard)
+    {- ,
     div [ class "content" ] [
       if model.solved then
         h1 [] [text "Solved!"]
       else
         text ""
-    ]
+    ] -}
   ]

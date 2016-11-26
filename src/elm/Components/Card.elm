@@ -7,6 +7,7 @@ import Html.Events exposing ( onInput, onClick )
 -- Game Model
 type alias Model =
   {
+    solved: Bool,
     hidden: Bool,
     question: String,
     answer: String,
@@ -23,7 +24,9 @@ update : Msg -> Model -> Model
 update msg model =
   case msg of
     Guess guess ->
-      { model | guess = guess }
+      { model |
+        guess = guess,
+        solved = (guess == model.answer)}
     ToggleHidden ->
       { model | hidden = not model.hidden}
 
@@ -62,7 +65,10 @@ card model =
         ]
       ],
       div [ class "card-content" ][
-        input [ type_ "guess", style [("text-align","center")], placeholder "guess", onInput Guess ] []
+        if model.solved then
+          text model.answer
+        else
+          input [ type_ "guess", style [("text-align","center")], placeholder "guess", onInput Guess ] []
       ]
     ]
   else
