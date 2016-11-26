@@ -13,6 +13,7 @@ type alias Model =
     rightCard: Card.Model
   }
 
+-- converts a question/answer tuple to a new flashcard model
 toFlashCard : (String, String) -> Model
 toFlashCard words =
   let
@@ -22,12 +23,14 @@ toFlashCard words =
       solved = False,
       leftCard =
         {
+          hidden = True,
           question = question,
           answer = "",
           guess = ""
         },
       rightCard =
         {
+          hidden = True,
           question = "",
           answer = answer,
           guess = ""
