@@ -43,17 +43,37 @@ update msg model =
     SetCurrent index ->
       { model | current = index }
     Previous ->
-      { model | current =
-        if model.current == 0 then
-          (Array.length model.flashcards - 1)
-        else (model.current - 1)
-      }
+      case (Array.get model.current model.flashcards) of
+        Just currentCard ->
+          let
+            updatedCard = FlashCard.update FlashCard.Hide currentCard
+            updatedFlashCards = Array.set model.current updatedCard model.flashcards
+          in
+            { model |
+              current =
+                if model.current == 0 then
+                  (Array.length model.flashcards - 1)
+                else (model.current - 1)
+              , flashcards = updatedFlashCards
+            }
+        Nothing ->
+          model
     Next ->
-      { model | current =
-        if model.current == (Array.length model.flashcards - 1) then
-          0
-        else (model.current + 1)
-      }
+      case (Array.get model.current model.flashcards) of
+        Just currentCard ->
+          let
+            updatedCard = FlashCard.update FlashCard.Hide currentCard
+            updatedFlashCards = Array.set model.current updatedCard model.flashcards
+          in
+            { model |
+              current =
+                if model.current == (Array.length model.flashcards - 1) then
+                  0
+                else (model.current + 1)
+              , flashcards = updatedFlashCards
+            }
+        Nothing ->
+          model
 
 flashcardNavigation : Array.Array FlashCard.Model -> Int -> Html Msg
 flashcardNavigation flashcards current =

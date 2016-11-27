@@ -42,6 +42,7 @@ toFlashCard words =
 -- FlashCard10 Msg
 type Msg
   = CardMsg Card.Msg
+  | Hide
 
 -- FlashCard10 Update
 update : Msg -> Model -> Model
@@ -56,6 +57,11 @@ update msg model =
           leftCard = Card.update subMsg model.leftCard,
           rightCard = rightCard
         }
+    Hide ->
+      { model |
+        leftCard = Card.update Card.Hide model.leftCard,
+        rightCard = Card.update Card.Hide model.rightCard
+      }
 
 
 -- FlashCard10 View

@@ -18,6 +18,7 @@ type alias Model =
 type Msg
   = Guess String
   | ToggleHidden
+  | Hide
 
 -- Game Update
 update : Msg -> Model -> Model
@@ -26,9 +27,11 @@ update msg model =
     Guess guess ->
       { model |
         guess = guess,
-        solved = (guess == model.answer)}
+        solved = (guess == model.answer) }
     ToggleHidden ->
-      { model | hidden = not model.hidden}
+      { model | hidden = not model.hidden }
+    Hide ->
+      { model | hidden = True }
 
 -- Game View
 card : Model -> Html Msg
