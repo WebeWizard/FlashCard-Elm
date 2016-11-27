@@ -31,8 +31,13 @@ update msg model =
         Just currentCard ->
           let
             updatedCard = FlashCard.update subMsg currentCard
+            updatedFlashCards = Array.set model.current updatedCard model.flashcards
           in
-            { model | flashcards = Array.set model.current updatedCard model.flashcards }
+            { model |
+              flashcards = updatedFlashCards,
+              complete = -- see if any of the flashcards are still unsolved
+                not (List.any (\m -> not m.solved) (Array.toList updatedFlashCards))
+             }
         Nothing ->
           model
     SetCurrent index ->
@@ -49,7 +54,6 @@ update msg model =
           0
         else (model.current + 1)
       }
-
 
 flashcardNavigation : Array.Array FlashCard.Model -> Int -> Html Msg
 flashcardNavigation flashcards current =
@@ -82,4 +86,8 @@ flashcard10 model =
       Maybe.Nothing ->
         text ""
     , button [ style [("display","inline-block"),("margin","2%")], onClick Next ] [ text ">" ]
+    , if model.complete then
+      text "Model Complete!"
+    else
+      text ""
   ]
