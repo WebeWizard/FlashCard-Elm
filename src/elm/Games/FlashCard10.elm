@@ -1,113 +1,93 @@
 module Games.FlashCard10 exposing (..)
 
-import Array
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing ( onClick )
 
-import Games.FlashCard as FlashCard
+import Common.GameMode as GameMode
+import Games.FlashCard10Study as FlashCard10Study
+import Games.FlashCard10Practice as FlashCard10Practice
+import Games.FlashCard10Exam as FlashCard10Exam
+
+
+
 
 -- FlashCard10 Model
 type alias Model =
   {
     complete: Bool,
-    current: Int,
-    flashcards: Array.Array FlashCard.Model
+    currentMode: GameMode.GameMode,
+    subGames:
+      {
+        study: FlashCard10Study.Model,
+        practice: FlashCard10Practice.Model,
+        exam: FlashCard10Exam.Model
+      }
   }
 
 -- FlashCard10 Msg
+type FlashCardGameMsg
+  = FlashCard10StudyMsg FlashCard10Study.Msg
+  | FlashCard10PracticeMsg FlashCard10Practice.Msg
+  | FlashCard10ExamMsg FlashCard10Exam.Msg
+
 type Msg
-  = FlashCardMsg FlashCard.Msg
-  | SetCurrent Int
-  | Previous
-  | Next
+  = SubGameMsg FlashCardGameMsg
+  | Switch GameMode.GameMode
 
 -- FlashCard10 Update
 update : Msg -> Model -> Model
 update msg model =
   case msg of
-    FlashCardMsg subMsg ->
-      case (Array.get model.current model.flashcards) of
-        Just currentCard ->
+    SubGameMsg subMsg ->
+      -- pass the subMsg to the appropriate SubGame
+      case subMsg of
+        FlashCard10StudyMsg flashcardMsg ->
           let
-            updatedCard = FlashCard.update subMsg currentCard
-            updatedFlashCards = Array.set model.current updatedCard model.flashcards
+            updatedStudyGame = FlashCard10Study.update flashcardMsg model.subGames.study
+            updatedSubGames =
+              {
+                study = updatedStudyGame,
+                practice = model.subGames.practice,
+                exam = model.subGames.exam
+              }
           in
-            { model |
-              flashcards = updatedFlashCards,
-              complete = -- see if any of the flashcards are still unsolved
-                not (List.any (\m -> not m.solved) (Array.toList updatedFlashCards))
-             }
-        Nothing ->
-          model
-    SetCurrent index ->
-      { model | current = index }
-    Previous ->
-      case (Array.get model.current model.flashcards) of
-        Just currentCard ->
+            { model | subGames = updatedSubGames }
+        FlashCard10PracticeMsg flashcardMsg ->
           let
-            updatedCard = FlashCard.update FlashCard.Hide currentCard
-            updatedFlashCards = Array.set model.current updatedCard model.flashcards
+            updatedPracticeGame = FlashCard10Practice.update flashcardMsg model.subGames.practice
+            updatedSubGames =
+              {
+                study = model.subGames.study,
+                practice = updatedPracticeGame,
+                exam = model.subGames.exam
+              }
           in
-            { model |
-              current =
-                if model.current == 0 then
-                  (Array.length model.flashcards - 1)
-                else (model.current - 1)
-              , flashcards = updatedFlashCards
-            }
-        Nothing ->
-          model
-    Next ->
-      case (Array.get model.current model.flashcards) of
-        Just currentCard ->
+            { model | subGames = updatedSubGames }
+        FlashCard10ExamMsg flashcardMsg ->
           let
-            updatedCard = FlashCard.update FlashCard.Hide currentCard
-            updatedFlashCards = Array.set model.current updatedCard model.flashcards
+            updatedExamGame = FlashCard10Exam.update flashcardMsg model.subGames.exam
+            updatedSubGames =
+              {
+                study = model.subGames.study,
+                practice = model.subGames.practice,
+                exam = updatedExamGame
+              }
           in
-            { model |
-              current =
-                if model.current == (Array.length model.flashcards - 1) then
-                  0
-                else (model.current + 1)
-              , flashcards = updatedFlashCards
-            }
-        Nothing ->
-          model
-
-flashcardNavigation : Array.Array FlashCard.Model -> Int -> Html Msg
-flashcardNavigation flashcards current =
-  nav [ class "level" ]
-    -- map over the array and create a level-item per index in the array
-    -- use the curried function to include the currently visible index
-    (Array.toList (Array.indexedMap (flashcardNavigationDiv current) flashcards))
-
-flashcardNavigationDiv : Int -> Int -> FlashCard.Model -> Html Msg
-flashcardNavigationDiv current index value =
-  div [ class "level-item", onClick (SetCurrent index) ][
-    if index == current then
-      a [ class "button is-primary", style [("width","100%")] ] [ text (toString (index+1)) ]
-    else if value.solved then
-      a [ class "button is-success", style [("width","100%")] ] [ text (toString (index+1)) ]
-    else
-      a [ class "button", style [("width","100%")] ] [ text (toString (index+1)) ]
-  ]
+            { model | subGames = updatedSubGames }
+    Switch newMode ->
+      { model | currentMode = newMode }
+  -- meat and potatoes of the update function
 
 
 -- FlashCard10 View
 flashcard10 : Model -> Html Msg
 flashcard10 model =
-  div [ class "container" ] [
-    flashcardNavigation model.flashcards model.current,
-    button [ style [("display","inline-block"),("margin","2%")], onClick Previous ] [ text "<" ],
-    case (Array.get model.current model.flashcards) of
-      Just currentCard ->
-        Html.map FlashCardMsg (FlashCard.flashcard currentCard)
-      Maybe.Nothing ->
-        text ""
-    , button [ style [("display","inline-block"),("margin","2%")], onClick Next ] [ text ">" ]
-    , if model.complete then
-      text "Model Complete!"
-    else
-      text ""
+  div [ class "container", style [("text-align","center")] ][
+  case model.currentMode of
+    GameMode.Study ->
+      Html.map SubGameMsg (Html.map FlashCard10StudyMsg (FlashCard10Study.flashcard10study model.subGames.study))
+    GameMode.Practice ->
+      Html.map SubGameMsg (Html.map FlashCard10PracticeMsg (FlashCard10Practice.flashcard10practice model.subGames.practice))
+    GameMode.Exam ->
+      Html.map SubGameMsg (Html.map FlashCard10ExamMsg (FlashCard10Exam.flashcard10exam model.subGames.exam))
   ]

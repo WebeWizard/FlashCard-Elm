@@ -9,6 +9,7 @@ type alias Model =
   {
     solved: Bool,
     hidden: Bool,
+    noHint: Bool,
     question: String,
     answer: String,
     guess: String

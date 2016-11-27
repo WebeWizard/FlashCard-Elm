@@ -5,7 +5,8 @@ import Html.Attributes exposing (..)
 
 import Games.FlashCard10 as FlashCard10
 
-type GameModelType = FlashCard10Type FlashCard10.Model | TextType String
+type GameModelType
+  = FlashCard10Type FlashCard10.Model
 
 -- Game Model
 type alias Model =
@@ -16,9 +17,8 @@ type alias Model =
 -- Game Msg
 type Msg
   = FlashCard10Msg FlashCard10.Msg
-  | TextMsg String
 
--- Gamer Update
+-- Game Update
 update : Msg -> Model -> Model
 update msg model =
   case msg of
@@ -26,10 +26,6 @@ update msg model =
       case model.game of
         FlashCard10Type flashcard10Model ->
           { model | game = FlashCard10Type (FlashCard10.update subMsg flashcard10Model) }
-        TextType text ->
-          { model | game = TextType text }
-    TextMsg subMsg ->
-      { model | game = TextType subMsg }
 
 
 -- Game View
@@ -39,6 +35,4 @@ game model =
   case model.game of
     FlashCard10Type flashcard10model ->
       Html.map FlashCard10Msg (FlashCard10.flashcard10 flashcard10model)
-    TextType textmodel ->
-      text textmodel
   ]

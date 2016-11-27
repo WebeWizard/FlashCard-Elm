@@ -3,39 +3,50 @@ module Games.FlashCard exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
+import Common.GameMode as GameMode
 import Components.Card as Card
+
+
 
 -- FlashCard10 Model
 type alias Model =
   {
+    mode: GameMode.GameMode,
     solved: Bool,
     leftCard: Card.Model,
     rightCard: Card.Model
   }
 
 -- converts a question/answer tuple to a new flashcard model
-toFlashCard : (String, String) -> Model
-toFlashCard words =
+toFlashCard : GameMode.GameMode -> (String, String) -> Model
+toFlashCard gamemode words =
   let
     (question, answer) = words
   in
     {
+      mode = gamemode,
       solved = False,
       leftCard =
         {
           solved = False,
           hidden = True,
+          noHint = True,
           question = question,
           answer = "",
           guess = ""
         },
       rightCard =
         {
-          solved = False,
+          solved = gamemode == GameMode.Study,
           hidden = True,
+          noHint = False, -- this should change based on game type
           question = "",
           answer = answer,
-          guess = ""
+          guess =
+            if gamemode == GameMode.Study then
+              answer
+            else
+              ""
         }
     }
 
