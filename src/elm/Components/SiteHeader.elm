@@ -2,12 +2,9 @@ module Components.SiteHeader exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import String
 
--- SiteHeader Model
-type alias Model = String
+type alias Model = String -- only take a string for now until we actually want to use something
 
--- SiteHeader view
 siteheader : Model -> Html a
 siteheader model =
   div [ class "hero is-primary" ][

@@ -1,80 +1,105 @@
 module InitModel exposing (..)
 
-import Array
-import Dict
+import Array exposing (..)
+import Dict exposing (..)
 
-import Common.GameMode as GameMode
-import Words.Position
-import Game
-import Games.FlashCard10 as FlashCard10
-import Games.FlashCard10Study as FlashCard10Study
-import Games.FlashCard10Practice as FlashCard10Practice
-import Games.FlashCard10Exam as FlashCard10Exam
-import Games.FlashCard as FlashCard
 import Components.Card as Card
+import Game
+import Games.FlashCard.FlashCardGame as FlashCardGame
+import Games.FlashCard.Study as Study
+import Games.FlashCard.Practice as Practice
+import Games.FlashCard.Exam as Exam
+import Topic
 
-type alias Model =
-  {
-    name: String,
-    game: Game.Model
-  }
-
--- dict of flashcards
-studyFlashCardsList = List.map (FlashCard.toFlashCard GameMode.Study) Words.Position.position_list
-studyFlashCardsArray = Array.fromList studyFlashCardsList
-
-practiceFlashCardsList = List.map (FlashCard.toFlashCard GameMode.Practice) Words.Position.position_list
-practiceFlashCardsArray = Array.fromList practiceFlashCardsList
-
-examFlashCardsList = List.map (FlashCard.toFlashCard GameMode.Exam) Words.Position.position_list
-examFlashCardsArray = Array.fromList examFlashCardsList
-
-flashcard10studymodel : FlashCard10Study.Model
-flashcard10studymodel =
+study : Study.Model
+study =
   {
     complete = False,
-    current = 0,
-    flashcards = studyFlashCardsArray
-  }
-
-flashcard10practicemodel : FlashCard10Practice.Model
-flashcard10practicemodel =
-  {
-    complete = False,
-    current = 0,
-    flashcards = practiceFlashCardsArray
-  }
-
-flashcard10exammodel : FlashCard10Exam.Model
-flashcard10exammodel =
-  {
-    complete = False,
-    current = 0,
-    flashcards = examFlashCardsArray
-  }
-
-flashcard10model : FlashCard10.Model
-flashcard10model =
-  {
-    complete = False,
-    currentMode = GameMode.Study,
-    subGames =
+    flashcardList = Array.fromList [
       {
-        study = flashcard10studymodel,
-        practice = flashcard10practicemodel,
-        exam = flashcard10exammodel
+        cardstyle = Card.Normal,
+        complete = True,
+        concept = "Hello",
+        translation = "안녕하세요",
+        guess = ""
       }
+    ]
   }
 
-gamemodel : Game.Model
-gamemodel =
+practice : Practice.Model
+practice =
   {
-    game = Game.FlashCard10Type flashcard10model
+    round = 1,
+    complete = False,
+    flashcardList = "asdf"
   }
 
-model : Model
+exam : Exam.Model
+exam =
+  {
+    complete = False,
+    flashcardList = "asdf"
+  }
+
+testSubTopic : Topic.Topic
+testSubTopic =
+  {
+    key = "Test Subtopic",
+    complete = False,
+    subTopics = Topic.SubTopics [otherSubTopic,otherSubTopic],
+    words = ["hi", "macro"],
+    study = study,
+    practice = practice,
+    exam = exam
+  }
+
+otherSubTopic : Topic.Topic
+otherSubTopic =
+  {
+    key = "Test Subtopic",
+    complete = False,
+    subTopics = Topic.None,
+    words = ["hi", "macro"],
+    study = study,
+    practice = practice,
+    exam = exam
+  }
+
+positionTopic : Topic.Topic
+positionTopic =
+  {
+    key = "Position",
+    complete = False,
+    subTopics = Topic.SubTopics [testSubTopic,testSubTopic],
+    words = ["hi","mom"],
+    study = study,
+    practice = practice,
+    exam = exam
+  }
+
+greetingsTopic : Topic.Topic
+greetingsTopic =
+  {
+    key = "Greetings",
+    complete = False,
+    subTopics = Topic.None,
+    words = ["hello","goodbye"],
+    study = study,
+    practice = practice,
+    exam = exam
+  }
+
+topics = [positionTopic, greetingsTopic]
+
+flashcardgamemodel =
+  {
+    currentMode = FlashCardGame.StudyMode,
+    breadcrumb = ["Greetings"],
+    topics = topics
+  }
+
 model =
   {
-    name = "FlashCard10",
-    game = gamemodel
+    name = "WebeWizard",
+    game = Game.FlashCardGameType flashcardgamemodel
   }
