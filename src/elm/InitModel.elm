@@ -4,12 +4,12 @@ import Array exposing (..)
 import Dict exposing (..)
 
 import Components.Card as Card
-import Game
 import Games.FlashCard.FlashCardGame as FlashCardGame
 import Games.FlashCard.Study as Study
 import Games.FlashCard.Practice as Practice
 import Games.FlashCard.Exam as Exam
 import Topic
+import Util.GameModes as GameModes
 
 study : Study.Model
 study =
@@ -93,7 +93,7 @@ topics = [positionTopic, greetingsTopic]
 
 flashcardgamemodel =
   {
-    currentMode = FlashCardGame.StudyMode,
+    currentMode = GameModes.StudyMode,
     breadcrumb = ["Greetings"],
     topics = topics
   }
@@ -101,5 +101,5 @@ flashcardgamemodel =
 model =
   {
     name = "WebeWizard",
-    game = Game.FlashCardGameType flashcardgamemodel
+    game = flashcardgamemodel
   }

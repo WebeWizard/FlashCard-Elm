@@ -4,23 +4,19 @@ import Dict exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
+import Components.ModeChooser as ModeChooser
 import Components.TopicChooser as TopicChooser
 import Games.FlashCard.Study as Study
 import Games.FlashCard.Practice as Practice
 import Games.FlashCard.Exam as Exam
 import Topic exposing (..)
+import Util.GameModes exposing (..)
 
-
-type GameMode
-  = TopicMode
-  | StudyMode
-  | PracticeMode
-  | ExamMode
 
 -- FlashCardGame Model
 type alias Model = -- really gonna have to put some thought into how this is laid out with subtopics
   {
-    currentMode: GameMode,
+    currentMode: GameModes,
     breadcrumb: List String,
     topics: List Topic
   }
@@ -29,6 +25,10 @@ type alias Model = -- really gonna have to put some thought into how this is lai
 update : Msg -> Model -> Model
 update msg model =
   case msg of
+    ModeChooserMsg submsg ->
+      case submsg of
+        ModeChooser.SwitchTo gamemode ->
+          { model | currentMode = gamemode }
     TopicChooserMsg submsg ->
       case submsg of
         TopicChooser.ChangeTopic breadcrumb ->
@@ -42,7 +42,8 @@ update msg model =
 
 -- FlashCardGame Msg
 type Msg
- = TopicChooserMsg TopicChooser.Msg
+ = ModeChooserMsg ModeChooser.Msg
+ | TopicChooserMsg TopicChooser.Msg
  | StudyMsg Study.Msg
  | PracticeMsg Study.Msg
  | ExamMsg Exam.Msg
@@ -51,6 +52,7 @@ type Msg
 flashcardgame : Model -> Html Msg
 flashcardgame model =
   div [ class "container", style [("text-align","center")] ][
+    Html.map ModeChooserMsg ModeChooser.modechooser,
     case model.currentMode of
       TopicMode ->
         TopicChooser.topicchooser model.topics
