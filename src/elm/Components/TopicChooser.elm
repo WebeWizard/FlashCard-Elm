@@ -1,54 +1,52 @@
 module Components.TopicChooser exposing (..)
 
 import List exposing (..)
+import Dict exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing ( onClick )
 
 import Topic exposing (..)
 
+import Debug exposing (..)
+
 -- TopicChooser Model
 -- -- we don't need a model, just need a view that takes inputs
 
--- TopicChooser Update
-
 -- TopicChooser Msg
 type Msg
-  = ChangeTopic (List String)
+  = ChangeTopic String
 
 -- TopicChooser View
-topicchooser : List Topic -> Html a
-topicchooser topicList =
+topicchooser : List String -> Dict String Topic -> Html Msg
+topicchooser mainTopics topics =
   div [ class "container" ]
-    (List.map (topicSquare []) topicList)
+    -- map each maintopic... recurse
+    (List.map (topicSquare topics 0) mainTopics)
 
-topicSquare : (List String) -> Topic -> Html a
-topicSquare ancestry topic =
-  let
-    breadcrumb = List.append ancestry [topic.key]
-    padding =
-      case (List.length ancestry) of
-        1 -> "20px"
-        2 -> "5px"
-        _ -> "2px"
-  in
-    div [ style [("display","flex"),("width","100%"),("margin",padding)] ][
-      -- onclick, we need a way to tell the app which topic the click originated from
-      -- send a List, not an array so we can use the
-      button [ style [("border","1px solid"),("width","200px")] ][
-        text topic.key
-      ],
-      case topic.subTopics of
-        SubTopics subtopiclist ->
-          if List.isEmpty subtopiclist == False then
-            div [] (
-              List.map (topicSquare breadcrumb) subtopiclist
-            )
-          else
-            text ""
-        None ->
-          text ""
-  ]
+
+topicSquare : Dict String Topic -> Int -> String -> Html Msg
+topicSquare topics level key =
+  case Dict.get key topics of
+    Just topic ->
+      let
+        test = log "level" level
+        padding =
+          case level of
+            0 -> "20px"
+            1 -> "5px"
+            _ -> "2px"
+      in
+        div [ style [("display","flex"),("width","100%"),("margin",padding)] ]
+          -- render the button for this topic
+          (
+            button [ style [("border","1px solid"),("min-width","200px")], onClick (ChangeTopic key) ][
+              text topic.name
+            ] :: List.map (topicSquare topics (level+1)) topic.children
+          )
+
+    Nothing ->
+      text ""
 
 {-
   How do you view a nested list of things?

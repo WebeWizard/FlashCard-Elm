@@ -17,20 +17,28 @@ type Msg
 
 
 -- ModeChooser View
-modechooser : Html Msg
-modechooser =
+modechooser : GameModes -> Html Msg
+modechooser currentMode =
   div [] [
-    fieldset [] [
-      radio "Topics" (SwitchTo TopicMode),
-      radio "Study" (SwitchTo StudyMode),
-      radio "Practice" (SwitchTo PracticeMode),
-      radio "Exam" (SwitchTo ExamMode)
-    ]
+    let
+      makeRadio = radio currentMode
+    in
+      fieldset [] [
+        makeRadio TopicMode "Topics",
+        makeRadio StudyMode "Study",
+        makeRadio PracticeMode "Practice",
+        makeRadio ExamMode "Exam"
+      ]
   ]
 
-radio : String -> msg -> Html msg
-radio value msg =
+radio : GameModes -> GameModes -> String -> Html Msg
+radio currentMode targetMode value =
   label [ style [("padding","20px")] ][
-    input [ type_ "radio", name "mode", onClick msg ][],
+    input [ type_ "radio", name "mode", onClick (SwitchTo targetMode),
+          if (currentMode == targetMode) then
+            checked True
+          else
+            checked False
+    ][],
     text value
   ]

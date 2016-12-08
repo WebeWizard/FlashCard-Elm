@@ -3,14 +3,14 @@ module Components.Card exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
-type Style
+type CardStyle
  = Normal
  | RightSideOnly
 
 -- Card Model
 type alias Model =
   {
-      cardstyle: Style,
+      cardstyle: CardStyle,
       complete: Bool,
       concept: String,
       translation: String,
@@ -20,6 +20,13 @@ type alias Model =
 -- Card Msg
 type Msg
   = Guess String
+
+-- Card Update
+update : Msg -> Model -> Model
+update msg model =
+  case msg of
+    Guess guess ->
+      { model | guess = guess }
 
 card : Model -> Html a
 card model =
@@ -63,3 +70,15 @@ rightside model =
         input [ type_ "text", style [("text-align","center")], placeholder "Translate" ] []
     ]
   ]
+
+newCard : CardStyle -> String -> String -> Model
+newCard cardstyle concept translation =
+  {
+    cardstyle = cardstyle,
+    complete = False,
+    concept = concept,
+    translation = translation,
+    guess = ""
+  }
+
+newNormalCard = newCard Normal

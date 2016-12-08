@@ -17,8 +17,9 @@ import Util.GameModes exposing (..)
 type alias Model = -- really gonna have to put some thought into how this is laid out with subtopics
   {
     currentMode: GameModes,
-    breadcrumb: List String,
-    topics: List Topic
+    currentTopic: String,
+    mainTopics: List String,
+    topics: Dict String Topic
   }
 
 -- FlashCardGame Update
@@ -28,11 +29,17 @@ update msg model =
     ModeChooserMsg submsg ->
       case submsg of
         ModeChooser.SwitchTo gamemode ->
-          { model | currentMode = gamemode }
+          { model |
+            currentMode = gamemode,
+            currentTopic = if gamemode == TopicMode then "" else model.currentTopic
+          }
     TopicChooserMsg submsg ->
       case submsg of
-        TopicChooser.ChangeTopic breadcrumb ->
-          { model | breadcrumb = breadcrumb }
+        TopicChooser.ChangeTopic currentTopic ->
+          { model |
+            currentTopic = currentTopic,
+            currentMode = StudyMode
+          }
     StudyMsg subMsg ->
       model
     PracticeMsg subMsg ->
@@ -52,16 +59,13 @@ type Msg
 flashcardgame : Model -> Html Msg
 flashcardgame model =
   div [ class "container", style [("text-align","center")] ][
-    Html.map ModeChooserMsg ModeChooser.modechooser,
+    Html.map ModeChooserMsg (ModeChooser.modechooser model.currentMode),
+    text (toString model.currentTopic),
     case model.currentMode of
       TopicMode ->
-        TopicChooser.topicchooser model.topics
+        Html.map TopicChooserMsg (TopicChooser.topicchooser model.mainTopics model.topics)
       StudyMode ->
-        case (Topic.get model.breadcrumb model.topics) of
-          Just topic ->
-            Study.study topic.study
-          Nothing ->
-            text ""
+        text "study mode goes here"
       PracticeMode ->
         text "practice should go here"
       ExamMode ->

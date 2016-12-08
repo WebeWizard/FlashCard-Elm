@@ -1,0 +1,93 @@
+What is a deeply nested structure?
+
+In our case, it all starts with a List of "things".  The "things" being individual
+"Topics" of our flashcard game.
+
+So we have our List of Topics.
+[ Topic1, Topic2, Topic3, Topic4, Topic5 ]
+
+Their order within the List is important.
+
+What's in a Topic?  Glad you asked...
+
+Inside of a Topic, we have the "key" or "name" of the Topic.
+We also have List of subTopics!  The subTopics themselves are actually more Topic structures.
+
+Topic1 looks like...
+{
+  key: "Cool Topic",
+  subTopics: [ CoolSubTopic1, CoolSubTopic2, CoolSubTopic3 ]
+  whatever: True,
+  YourMom: "Linda"
+}
+
+And since each of those subTopics are also Topics, that means there could be "SubSubTopics"
+and "SubSubSubTopics".
+
+We call it a "nested" structure, because a SubTopic is "nested" within a parent Topic.
+Here is a visual way to look at it.  The spaces/arrows indicate it's "level" within the structure.
+Pay attention to the Topic labeled "Cool Topic".
+
+Topic1
+ -> Sub1Topic1
+ -> Sub1Topic2
+ -> -> Sub1Sub2Topic1
+ -> -> Cool Topic
+ -> SubTopic3
+Topic2
+ -> Sub2Topic1
+ -> -> Sub2Sub1Topic1
+ -> Sub2Topic2
+
+Benefits of a nested structures are...
+1) When we access a "parent" topic.  We can then easily access the children subtopics.
+2) The Topic structure only needs to keep a "key" and not the entire breadcrumb (ancestry to reach the target topic)
+3) Data in memory closely resembles the visual model above.
+
+Cons of nested structures are...
+1) Need to use a breadcrumb to access a subtopic.  Accesses every topic along the way.
+2) **In an IMMUTABLE (can't be directly modified) environment, like Elm**
+To "modify" a subTopic.  You have to use the breadcrumb to find the parent, and then insert a "new" topic
+as a subtopic, replacing what was originally there.  And you have to do that for each level
+of topic/subtopic along the way.  THIS SUUUUUUUUCKS
+3) This model causes you to really think about the entire structure, instead of just the
+particular topic/subtopic you want to be working with.
+
+
+What does a Flattened structure look like?
+It's still a list... but each item in the list DOES NOT contain a sub List.
+[ Topic1, Sub1Topic1, Sub1Topic2, Sub1Sub2Topic1, Cool Topic, SubTopic3, Topic2, Sub2Topic1, Sub2Sub1Topic1, Sub2Topic2 ]
+
+It's just one really long list containing every topic and subtopic, all on the same level.
+
+If they are all on the same level, then how do we keep track of which is a parent and which is a child Topic?
+ - The relationship data must be contained within the Topics themselves.
+
+For my work today,  I'm going to modify the Topic model to look like this...
+Cool Topic NOW looks like...
+{
+ ancestry: "Topic1,Sub1Topic2"
+ name: "Cool Topic",
+ subTopics: [ CoolSubTopic1, CoolSubTopic2, CoolSubTopic3 ]
+ whatever: True,
+ YourMom: "Linda"
+}
+
+So now, if we want to access a single Topic.  We only need to find it by name.
+We can quickly iterate over the entire list and ask.  "Is your name 'Cool Topic' ???"  If so.  Then we found it!
+
+Also, if we wanted to find all the subtopics of a topic... say... "Topic2"..
+We can iterate over the list again and ask "Which of you has the ancestry 'Topic2' ???".
+This will return any subtopics of Topic2 and, if we desire, any subsubtopics of Topic2.
+
+Benefits...
+1) Easily access individual topics, now matter how deeply nested they once were.
+2) Iterating over a list is very fast.
+3) Focus is now on the individual topics, and not on the entire structure.
+4) Functions already exist for filtering and mapping single level lists.
+
+Cons...
+1) .... .... ....
+2) .... It doesn't make me breakfast each morning? ....
+
+OK!  Let's start!  (I'm going to use a Dict instead of a List to make it easier to refer to Topics by name)

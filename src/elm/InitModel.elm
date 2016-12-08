@@ -11,19 +11,21 @@ import Games.FlashCard.Exam as Exam
 import Topic
 import Util.GameModes as GameModes
 
+flashcardList = Array.fromList [
+    Card.newNormalCard "Hello (informal)" "안녕하세요",
+    Card.newNormalCard "Hello (formal)" "안녕하습니까",
+    Card.newNormalCard "How are you?" "안녕한셨습니까?",
+    Card.newNormalCard "Good morning" "좋은 아침",
+    Card.newNormalCard "Good evening" "좋은 저녁",
+    Card.newNormalCard "Good night" "절자"
+  ]
+
 study : Study.Model
 study =
   {
+    currentCard = 0,
     complete = False,
-    flashcardList = Array.fromList [
-      {
-        cardstyle = Card.Normal,
-        complete = True,
-        concept = "Hello",
-        translation = "안녕하세요",
-        guess = ""
-      }
-    ]
+    flashcardList = flashcardList
   }
 
 practice : Practice.Model
@@ -41,25 +43,13 @@ exam =
     flashcardList = "asdf"
   }
 
+
 testSubTopic : Topic.Topic
 testSubTopic =
   {
-    key = "Test Subtopic",
+    children = [],
+    name = "Test Sub Topic",
     complete = False,
-    subTopics = Topic.SubTopics [otherSubTopic,otherSubTopic],
-    words = ["hi", "macro"],
-    study = study,
-    practice = practice,
-    exam = exam
-  }
-
-otherSubTopic : Topic.Topic
-otherSubTopic =
-  {
-    key = "Test Subtopic",
-    complete = False,
-    subTopics = Topic.None,
-    words = ["hi", "macro"],
     study = study,
     practice = practice,
     exam = exam
@@ -68,10 +58,9 @@ otherSubTopic =
 positionTopic : Topic.Topic
 positionTopic =
   {
-    key = "Position",
+    children = [],
+    name = "Position",
     complete = False,
-    subTopics = Topic.SubTopics [testSubTopic,testSubTopic],
-    words = ["hi","mom"],
     study = study,
     practice = practice,
     exam = exam
@@ -80,21 +69,26 @@ positionTopic =
 greetingsTopic : Topic.Topic
 greetingsTopic =
   {
-    key = "Greetings",
+    children = ["Test Sub Topic","Test Sub Topic"],
+    name = "Greetings",
     complete = False,
-    subTopics = Topic.None,
-    words = ["hello","goodbye"],
     study = study,
     practice = practice,
     exam = exam
   }
 
-topics = [positionTopic, greetingsTopic]
+topics =
+  Dict.empty
+  |> Dict.insert "Position" positionTopic
+  |> Dict.insert "Greetings" greetingsTopic
+  |> Dict.insert "Test Sub Topic" testSubTopic
+
 
 flashcardgamemodel =
   {
-    currentMode = GameModes.StudyMode,
-    breadcrumb = ["Greetings"],
+    currentMode = GameModes.TopicMode,
+    currentTopic = "",
+    mainTopics = ["Greetings","Position"],
     topics = topics
   }
 
