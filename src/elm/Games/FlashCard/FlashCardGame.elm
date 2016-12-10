@@ -19,7 +19,7 @@ type alias Model = -- really gonna have to put some thought into how this is lai
     currentMode: GameModes,
     currentTopic: String,
     mainTopics: List String,
-    topics: Dict String Topic
+    topics: Dict String Topic.Model
   }
 
 -- FlashCardGame Update
@@ -40,20 +40,20 @@ update msg model =
             currentTopic = currentTopic,
             currentMode = StudyMode
           }
-    StudyMsg subMsg ->
-      model
-    PracticeMsg subMsg ->
-      model
-    ExamMsg subMsg ->
-      model
+    TopicMsg submsg ->
+      case (Dict.get model.currentTopic model.topics) of
+        Just topic ->
+          { model | topics =
+            Dict.insert model.currentTopic (Topic.update submsg topic) model.topics
+          }
+        Nothing ->
+          model
 
 -- FlashCardGame Msg
 type Msg
  = ModeChooserMsg ModeChooser.Msg
  | TopicChooserMsg TopicChooser.Msg
- | StudyMsg Study.Msg
- | PracticeMsg Study.Msg
- | ExamMsg Exam.Msg
+ | TopicMsg Topic.Msg
 
 
 flashcardgame : Model -> Html Msg
@@ -65,7 +65,12 @@ flashcardgame model =
       TopicMode ->
         Html.map TopicChooserMsg (TopicChooser.topicchooser model.mainTopics model.topics)
       StudyMode ->
-        text "study mode goes here"
+        case (Dict.get model.currentTopic model.topics) of
+          Just topic ->
+            -- this is ugly
+            Html.map TopicMsg (Html.map Topic.StudyMsg (Study.study topic.study))
+          Nothing ->
+            text ""
       PracticeMode ->
         text "practice should go here"
       ExamMode ->

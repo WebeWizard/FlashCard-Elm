@@ -18,14 +18,14 @@ type Msg
   = ChangeTopic String
 
 -- TopicChooser View
-topicchooser : List String -> Dict String Topic -> Html Msg
+topicchooser : List String -> Dict String Topic.Model -> Html Msg
 topicchooser mainTopics topics =
   div [ class "container" ]
     -- map each maintopic... recurse
     (List.map (topicSquare topics 0) mainTopics)
 
 
-topicSquare : Dict String Topic -> Int -> String -> Html Msg
+topicSquare : Dict String Topic.Model -> Int -> String -> Html Msg
 topicSquare topics level key =
   case Dict.get key topics of
     Just topic ->

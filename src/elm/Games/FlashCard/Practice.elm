@@ -10,6 +10,7 @@ type alias Model =
   {
     round: Int,
     complete: Bool,
+    currentCard: Int,
     flashcardList: String
   }
 

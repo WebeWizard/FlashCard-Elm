@@ -82,3 +82,8 @@ newCard cardstyle concept translation =
   }
 
 newNormalCard = newCard Normal
+
+-- complete = true
+completeCard : Model -> Model
+completeCard card =
+  { card | complete = True }

@@ -25,14 +25,15 @@ study =
   {
     currentCard = 0,
     complete = False,
-    flashcardList = flashcardList
+    flashcardList = Array.map Card.completeCard flashcardList
   }
 
 practice : Practice.Model
 practice =
   {
-    round = 1,
+    round = 0, -- zero based
     complete = False,
+    currentCard = 0,
     flashcardList = "asdf"
   }
 
@@ -44,7 +45,7 @@ exam =
   }
 
 
-testSubTopic : Topic.Topic
+testSubTopic : Topic.Model
 testSubTopic =
   {
     children = [],
@@ -55,7 +56,7 @@ testSubTopic =
     exam = exam
   }
 
-positionTopic : Topic.Topic
+positionTopic : Topic.Model
 positionTopic =
   {
     children = [],
@@ -66,7 +67,7 @@ positionTopic =
     exam = exam
   }
 
-greetingsTopic : Topic.Topic
+greetingsTopic : Topic.Model
 greetingsTopic =
   {
     children = ["Test Sub Topic","Test Sub Topic"],
