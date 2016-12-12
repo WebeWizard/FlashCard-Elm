@@ -1,11 +1,19 @@
 module Components.Card exposing (..)
 
+import Debug exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing ( onClick, onInput )
 
 type CardStyle
- = Normal
- | RightSideOnly
+  = Normal
+  | RightSideOnly
+
+type HintVisibility
+  = Always
+  | Never
+  | Visible
+  | Hidden
 
 -- Card Model
 type alias Model =
@@ -14,21 +22,33 @@ type alias Model =
       complete: Bool,
       concept: String,
       translation: String,
-      guess: String
+      guess: String,
+      hint: HintVisibility
   }
 
 -- Card Msg
 type Msg
   = Guess String
+  | ToggleHint
 
 -- Card Update
 update : Msg -> Model -> Model
 update msg model =
   case msg of
     Guess guess ->
-      { model | guess = guess }
+      { model |
+        complete = model.translation == guess,
+        guess = guess }
+    ToggleHint ->
+      { model |
+        hint =
+          case model.hint of
+            Hidden -> Visible
+            Visible -> Hidden
+            _ -> model.hint
+      }
 
-card : Model -> Html a
+card : Model -> Html Msg
 card model =
   div [ class "container", style [("text-align","center"),("display","inline-block")] ] (
     case model.cardstyle of
@@ -41,8 +61,7 @@ card model =
         [rightside model]
   )
 
-
-leftside : Model -> Html a
+leftside : Model -> Html Msg
 leftside model =
   div [ class "card", style [("display","inline-block"),("margin","15px")] ][
     div [ class "card-image" ][
@@ -55,19 +74,31 @@ leftside model =
     ]
   ]
 
-rightside : Model -> Html a
+rightside : Model -> Html Msg
 rightside model =
   div [ class "card", style [("display","inline-block"),("margin","15px")] ][
-    div [ class "card-image" ][
+    div [ class "card-image", onClick ToggleHint ][
       figure [ class "image" ][
         img [ src "http://placehold.it/300x225", alt "left-card-alt-text"][]
       ]
     ],
-    div [ class "card-content" ][
+    if model.hint == Visible || model.hint == Always then
+      div [   style [
+                ("position","relative")
+                ,("height","30px")
+                ,("margin-top","-30px")
+                ,("background","rgba(255,255,255,0.5)")
+              ]
+          ][
+            text model.translation
+          ]
+    else
+      text ""
+    ,div [ class "card-content" ][
       if model.complete then
         text model.translation
       else
-        input [ type_ "text", style [("text-align","center")], placeholder "Translate" ] []
+        input [ type_ "text", style [("text-align","center")], placeholder "Translate", onInput Guess ] []
     ]
   ]
 
@@ -78,7 +109,8 @@ newCard cardstyle concept translation =
     complete = False,
     concept = concept,
     translation = translation,
-    guess = ""
+    guess = "",
+    hint = Hidden
   }
 
 newNormalCard = newCard Normal

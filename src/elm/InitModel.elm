@@ -12,12 +12,14 @@ import Topic
 import Util.GameModes as GameModes
 
 flashcardList = Array.fromList [
-    Card.newNormalCard "Hello (informal)" "안녕하세요",
-    Card.newNormalCard "Hello (formal)" "안녕하습니까",
-    Card.newNormalCard "How are you?" "안녕한셨습니까?",
-    Card.newNormalCard "Good morning" "좋은 아침",
-    Card.newNormalCard "Good evening" "좋은 저녁",
-    Card.newNormalCard "Good night" "절자"
+    --Card.newNormalCard "Hello (informal)" "안녕하세요",
+    --Card.newNormalCard "Hello (formal)" "안녕하습니까",
+    --Card.newNormalCard "How are you?" "안녕한셨습니까?",
+    --Card.newNormalCard "Good morning" "좋은 아침",
+    --Card.newNormalCard "Good evening" "좋은 저녁",
+    --Card.newNormalCard "Good night" "절자"
+    Card.newNormalCard "test" "test",
+    Card.newNormalCard "asdf" "asdf"
   ]
 
 study : Study.Model
@@ -31,10 +33,10 @@ study =
 practice : Practice.Model
 practice =
   {
-    round = 0, -- zero based
+    completeRounds = 0,
     complete = False,
     currentCard = 0,
-    flashcardList = "asdf"
+    flashcardList = flashcardList
   }
 
 exam : Exam.Model

@@ -58,7 +58,7 @@ study model =
     in
       case currentCard of
         Just cardmodel ->
-          Card.card cardmodel
+          Html.map CardMsg (Card.card cardmodel)
         Nothing ->
           text ""
     , button [ style [("display","inline-block"),("margin","2%")], onClick NextCard ] [ text ">" ]

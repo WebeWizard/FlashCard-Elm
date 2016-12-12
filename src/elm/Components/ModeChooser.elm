@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 
+import Topic exposing (..)
 import Util.GameModes exposing (..)
 
 -- ModeChooser Model
@@ -17,8 +18,8 @@ type Msg
 
 
 -- ModeChooser View
-modechooser : GameModes -> Html Msg
-modechooser currentMode =
+modechooser : GameModes -> Topic.Model -> Html Msg
+modechooser currentMode topic =
   div [] [
     let
       makeRadio = radio currentMode
@@ -27,7 +28,12 @@ modechooser currentMode =
         makeRadio TopicMode "Topics",
         makeRadio StudyMode "Study",
         makeRadio PracticeMode "Practice",
-        makeRadio ExamMode "Exam"
+        (
+          if topic.practice.completeRounds >= 3 then
+            makeRadio ExamMode "Exam"
+          else
+            text ""
+        )
       ]
   ]
 

@@ -37,6 +37,6 @@ update msg model =
     StudyMsg submsg ->
       { model | study = Study.update submsg model.study }
     PracticeMsg submsg ->
-      model
+      { model | practice = Practice.update submsg model.practice }
     ExamMsg submsg ->
       model

@@ -58,21 +58,23 @@ type Msg
 
 flashcardgame : Model -> Html Msg
 flashcardgame model =
-  div [ class "container", style [("text-align","center")] ][
-    Html.map ModeChooserMsg (ModeChooser.modechooser model.currentMode),
-    text (toString model.currentTopic),
-    case model.currentMode of
-      TopicMode ->
-        Html.map TopicChooserMsg (TopicChooser.topicchooser model.mainTopics model.topics)
-      StudyMode ->
-        case (Dict.get model.currentTopic model.topics) of
-          Just topic ->
-            -- this is ugly
-            Html.map TopicMsg (Html.map Topic.StudyMsg (Study.study topic.study))
-          Nothing ->
-            text ""
-      PracticeMode ->
-        text "practice should go here"
-      ExamMode ->
-        text "exam should go here"
-  ]
+  div [ class "container", style [("text-align","center")] ]
+    (
+      case (Dict.get model.currentTopic model.topics) of
+        Just topic -> -- If we have a topic, allow for switching modes
+          [
+            Html.map ModeChooserMsg (ModeChooser.modechooser model.currentMode topic),
+            text (toString model.currentTopic),
+            case model.currentMode of
+              TopicMode ->
+                Html.map TopicChooserMsg (TopicChooser.topicchooser model.mainTopics model.topics)
+              StudyMode ->
+                Html.map TopicMsg (Html.map Topic.StudyMsg (Study.study topic.study))
+              PracticeMode ->
+                Html.map TopicMsg (Html.map Topic.PracticeMsg (Practice.practice topic.practice))
+              ExamMode ->
+                text "exam should go here"
+          ]
+        Nothing -> -- if there is no set topic, then only show the topic chooser
+          [ Html.map TopicChooserMsg (TopicChooser.topicchooser model.mainTopics model.topics) ]
+    )
