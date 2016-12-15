@@ -34,18 +34,34 @@ update msg model =
         Nothing ->
           model
     PreviousCard ->
-      { model | currentCard =
-        if (model.currentCard == 0) then
-          Array.length model.flashcardList - 1
-        else
-          model.currentCard - 1
+      { model |
+        flashcardList =
+          case (Array.get model.currentCard model.flashcardList) of
+            Just cardmodel ->
+              -- reset hint visibility of the card we are leaving
+              Array.set model.currentCard (Card.resetCardHint cardmodel) model.flashcardList
+            Nothing ->
+              model.flashcardList
+        , currentCard =
+          if (model.currentCard == 0) then
+            Array.length model.flashcardList - 1
+          else
+            model.currentCard - 1
       }
     NextCard ->
-      { model | currentCard =
-        if ( (model.currentCard + 1) == (Array.length model.flashcardList) ) then
-          0
-        else
-          model.currentCard + 1
+      { model |
+        flashcardList =
+          case (Array.get model.currentCard model.flashcardList) of
+            Just cardmodel ->
+              -- reset hint visibility of the card we are leaving
+              Array.set model.currentCard (Card.resetCardHint cardmodel) model.flashcardList
+            Nothing ->
+              model.flashcardList
+        , currentCard =
+          if ( (model.currentCard + 1) == (Array.length model.flashcardList) ) then
+            0
+          else
+            model.currentCard + 1
       }
 
 -- Study View

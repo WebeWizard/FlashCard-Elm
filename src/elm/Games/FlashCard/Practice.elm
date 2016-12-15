@@ -54,28 +54,40 @@ update msg model =
         Nothing ->
           model
     PreviousCard ->
-      -- TODO reset the hint visibility of all cards
-
-      { model | currentCard =
-        if (model.currentCard == 0) then
-          Array.length model.flashcardList - 1
-        else
-          model.currentCard - 1
+      { model |
+        flashcardList =
+          case (Array.get model.currentCard model.flashcardList) of
+            Just cardmodel ->
+              -- reset hint visibility of the card we are leaving
+              Array.set model.currentCard (Card.resetCardHint cardmodel) model.flashcardList
+            Nothing ->
+              model.flashcardList
+        , currentCard =
+          if (model.currentCard == 0) then
+            Array.length model.flashcardList - 1
+          else
+            model.currentCard - 1
       }
     NextCard ->
-      -- TODO reset the hint visibility of all cards
-
-      { model | currentCard =
-        if ( (model.currentCard + 1) == (Array.length model.flashcardList) ) then
-          0
-        else
-          model.currentCard + 1
+      { model |
+        flashcardList =
+          case (Array.get model.currentCard model.flashcardList) of
+            Just cardmodel ->
+              -- reset hint visibility of the card we are leaving
+              Array.set model.currentCard (Card.resetCardHint cardmodel) model.flashcardList
+            Nothing ->
+              model.flashcardList
+        , currentCard =
+          if ( (model.currentCard + 1) == (Array.length model.flashcardList) ) then
+            0
+          else
+            model.currentCard + 1
       }
     NextRound ->
       { model |
         complete = False,
         currentCard = 0,
-        flashcardList = Array.map (\card -> { card | complete = False, guess = ""}) model.flashcardList
+        flashcardList = Array.map Card.resetCard model.flashcardList
       }
 
 
@@ -96,7 +108,7 @@ practice model =
           text ""
     , button [ style [("display","inline-block"),("margin","2%")], onClick NextCard ] [ text ">" ],
     if model.complete then
-      button [ onClick NextRound ] [ text "RESET" ]
+      button [ onClick NextRound ] [ text "NEXT ROUND" ]
     else
       text ""
   ]

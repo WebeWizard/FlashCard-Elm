@@ -119,3 +119,24 @@ newNormalCard = newCard Normal
 completeCard : Model -> Model
 completeCard card =
   { card | complete = True }
+
+resetCard : Model -> Model
+resetCard card =
+  { card |
+    complete = False,
+    guess = "",
+    hint =
+      if card.hint == Visible then
+        Hidden
+      else
+        card.hint
+  }
+
+resetCardHint : Model -> Model
+resetCardHint card =
+  { card | hint =
+      if card.hint == Visible then
+        Hidden
+      else
+        card.hint
+  }
