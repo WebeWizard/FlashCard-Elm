@@ -73,7 +73,7 @@ flashcardgame model =
               PracticeMode ->
                 Html.map TopicMsg (Html.map Topic.PracticeMsg (Practice.practice topic.practice))
               ExamMode ->
-                text "exam should go here"
+                Html.map TopicMsg (Html.map Topic.ExamMsg (Exam.exam topic.exam))
           ]
         Nothing -> -- if there is no set topic, then only show the topic chooser
           [ Html.map TopicChooserMsg (TopicChooser.topicchooser model.mainTopics model.topics) ]

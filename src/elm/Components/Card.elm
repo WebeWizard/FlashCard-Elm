@@ -6,8 +6,9 @@ import Html.Attributes exposing (..)
 import Html.Events exposing ( onClick, onInput )
 
 type CardStyle
-  = Normal
-  | RightSideOnly
+  = Study
+  | Practice
+  | Exam
 
 type HintVisibility
   = Always
@@ -50,16 +51,17 @@ update msg model =
 
 card : Model -> Html Msg
 card model =
-  div [ class "container", style [("text-align","center"),("display","inline-block")] ] (
-    case model.cardstyle of
-      Normal -> --wtf this syntax
-        [
-          leftside model,
-          rightside model
-        ]
-      RightSideOnly ->
-        [rightside model]
-  )
+  div [ class "container", style [("text-align","center"),("display","inline-block")] ] [
+    leftside model,
+    rightside model,
+    if model.cardstyle == Exam && model.complete == False then
+      input [ type_ "text", style [("text-align","center")], placeholder "Translate", onInput Guess ] []
+    else if model.cardstyle == Exam then
+      text model.translation
+    else
+      text ""
+  ]
+
 
 leftside : Model -> Html Msg
 leftside model =
@@ -69,9 +71,12 @@ leftside model =
         img [ src "http://placehold.it/300x225", alt "left-card-alt-text"][]
       ]
     ],
-    div [ class "card-content" ][
-      text model.concept
-    ]
+    if model.cardstyle /= Exam then
+      div [ class "card-content" ][
+        text model.concept
+      ]
+    else
+      text ""
   ]
 
 rightside : Model -> Html Msg
@@ -94,12 +99,16 @@ rightside model =
           ]
     else
       text ""
-    ,div [ class "card-content" ][
-      if model.complete then
-        text model.translation
-      else
-        input [ type_ "text", style [("text-align","center")], placeholder "Translate", onInput Guess ] []
-    ]
+    ,
+    if model.cardstyle /= Exam then
+      div [ class "card-content" ][
+        if model.complete || model.cardstyle == Study || model.cardstyle == Exam then
+          text model.translation
+        else
+          input [ type_ "text", style [("text-align","center")], placeholder "Translate", onInput Guess ] []
+      ]
+    else
+      text ""
   ]
 
 newCard : CardStyle -> String -> String -> Model
@@ -110,10 +119,19 @@ newCard cardstyle concept translation =
     concept = concept,
     translation = translation,
     guess = "",
-    hint = Hidden
+    hint =
+      case cardstyle of
+        Study ->
+          Never
+        Practice ->
+          Hidden
+        Exam ->
+          Never
   }
 
-newNormalCard = newCard Normal
+newStudyCard = newCard Study
+newPracticeCard = newCard Practice
+newExamCard = newCard Exam
 
 -- complete = true
 completeCard : Model -> Model

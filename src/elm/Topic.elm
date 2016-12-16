@@ -39,4 +39,4 @@ update msg model =
     PracticeMsg submsg ->
       { model | practice = Practice.update submsg model.practice }
     ExamMsg submsg ->
-      model
+      { model | exam = Exam.update submsg model.exam }

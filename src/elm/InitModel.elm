@@ -11,15 +11,38 @@ import Games.FlashCard.Exam as Exam
 import Topic
 import Util.GameModes as GameModes
 
-flashcardList = Array.fromList [
+ -- TODO:  Create a better way to turn two strings into a card
+flashstudyList = Array.fromList [
     --Card.newNormalCard "Hello (informal)" "안녕하세요",
     --Card.newNormalCard "Hello (formal)" "안녕하습니까",
     --Card.newNormalCard "How are you?" "안녕한셨습니까?",
     --Card.newNormalCard "Good morning" "좋은 아침",
     --Card.newNormalCard "Good evening" "좋은 저녁",
     --Card.newNormalCard "Good night" "절자"
-    Card.newNormalCard "test" "test",
-    Card.newNormalCard "asdf" "asdf"
+    Card.newStudyCard "test" "test",
+    Card.newStudyCard "asdf" "asdf"
+  ]
+
+flashpracticeList = Array.fromList [
+    --Card.newNormalCard "Hello (informal)" "안녕하세요",
+    --Card.newNormalCard "Hello (formal)" "안녕하습니까",
+    --Card.newNormalCard "How are you?" "안녕한셨습니까?",
+    --Card.newNormalCard "Good morning" "좋은 아침",
+    --Card.newNormalCard "Good evening" "좋은 저녁",
+    --Card.newNormalCard "Good night" "절자"
+    Card.newPracticeCard "test" "test",
+    Card.newPracticeCard "asdf" "asdf"
+  ]
+
+flashexamList = Array.fromList [
+    --Card.newNormalCard "Hello (informal)" "안녕하세요",
+    --Card.newNormalCard "Hello (formal)" "안녕하습니까",
+    --Card.newNormalCard "How are you?" "안녕한셨습니까?",
+    --Card.newNormalCard "Good morning" "좋은 아침",
+    --Card.newNormalCard "Good evening" "좋은 저녁",
+    --Card.newNormalCard "Good night" "절자"
+    Card.newExamCard "test" "test",
+    Card.newExamCard "asdf" "asdf"
   ]
 
 study : Study.Model
@@ -27,7 +50,7 @@ study =
   {
     currentCard = 0,
     complete = False,
-    flashcardList = Array.map Card.completeCard flashcardList
+    flashcardList = flashstudyList
   }
 
 practice : Practice.Model
@@ -36,16 +59,16 @@ practice =
     completeRounds = 0,
     complete = False,
     currentCard = 0,
-    flashcardList = flashcardList
+    flashcardList = flashpracticeList
   }
 
 exam : Exam.Model
 exam =
   {
     complete = False,
-    flashcardList = "asdf"
+    currentCard = 0,
+    flashcardList = flashexamList
   }
-
 
 testSubTopic : Topic.Model
 testSubTopic =
