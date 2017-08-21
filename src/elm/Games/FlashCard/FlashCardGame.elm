@@ -55,7 +55,7 @@ type Msg
  | TopicChooserMsg TopicChooser.Msg
  | TopicMsg Topic.Msg
 
-
+-- FlashCardGame View
 flashcardgame : Model -> Html Msg
 flashcardgame model =
   div [ class "container", style [("text-align","center")] ]

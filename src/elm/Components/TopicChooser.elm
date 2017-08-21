@@ -8,8 +8,6 @@ import Html.Events exposing ( onClick )
 
 import Topic exposing (..)
 
-import Debug exposing (..)
-
 -- TopicChooser Model
 -- -- we don't need a model, just need a view that takes inputs
 
@@ -30,7 +28,6 @@ topicSquare topics level key =
   case Dict.get key topics of
     Just topic ->
       let
-        test = log "level" level
         padding =
           case level of
             0 -> "20px"

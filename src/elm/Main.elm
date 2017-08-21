@@ -3,6 +3,7 @@ import Html exposing (..)
 import Components.SiteHeader as SiteHeader
 import Games.FlashCard.FlashCardGame as FlashCardGame
 import InitModel
+import User
 
 -- APP
 main : Program Never Model Msg
@@ -12,13 +13,15 @@ main =
 -- MODEL
 type alias Model =
   {
-    name: String,
+    user: Maybe User.Model,
+    header: SiteHeader.Model,
     game: FlashCardGame.Model
   }
 
 -- MSG
 type Msg
   = FlashCardGameMsg FlashCardGame.Msg
+  | SiteHeaderMsg SiteHeader.Msg
 
 -- UPDATE
 update : Msg -> Model -> Model
@@ -26,12 +29,14 @@ update msg model =
   case msg of
     FlashCardGameMsg submsg ->
       { model | game = FlashCardGame.update submsg model.game }
+    SiteHeaderMsg submsg ->
+      { model | header = SiteHeader.update submsg model.header }
 
 -- VIEW
 view : Model -> Html Msg
 view model =
   div [][
-    SiteHeader.siteheader "WebeWizard",
+    Html.map SiteHeaderMsg (SiteHeader.siteheader model.header),
     div [][
       Html.map FlashCardGameMsg (FlashCardGame.flashcardgame model.game)
     ]

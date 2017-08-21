@@ -4,6 +4,8 @@ import Array exposing (..)
 import Dict exposing (..)
 
 import Components.Card as Card
+import Components.SiteHeader as SiteHeader
+import Components.UserControl as UserControl
 import Games.FlashCard.FlashCardGame as FlashCardGame
 import Games.FlashCard.Study as Study
 import Games.FlashCard.Practice as Practice
@@ -118,8 +120,24 @@ flashcardgamemodel =
     topics = topics
   }
 
+usercontrol : UserControl.Model
+usercontrol =
+  {
+    logged_in = False,
+    name = "",
+    pass = "",
+    err = ""
+  }
+
+siteheader : SiteHeader.Model
+siteheader = {
+    name = "WebeWizard",
+    usercontrol = usercontrol
+  }
+
 model =
   {
-    name = "WebeWizard",
+    user = Nothing,
+    header = siteheader,
     game = flashcardgamemodel
   }
