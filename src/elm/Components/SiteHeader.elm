@@ -34,8 +34,7 @@ siteheader model =
             text (String.concat ["Simple Flashcard App - ",model.name])
           ]
         ]
-      ]
-    ],
-    -- TODO give it a real user model
-    Html.map UserControlMsg (UserControl.usercontrol model.usercontrol)
+      ],
+      Html.map UserControlMsg (UserControl.usercontrol model.usercontrol)
+    ]
   ]
