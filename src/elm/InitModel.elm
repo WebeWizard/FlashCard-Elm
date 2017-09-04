@@ -4,6 +4,7 @@ import Array exposing (..)
 import Dict exposing (..)
 
 import Components.Card as Card
+import Components.Registration as Registration
 import Components.SiteHeader as SiteHeader
 import Components.UserControl as UserControl
 import Games.FlashCard.FlashCardGame as FlashCardGame
@@ -11,9 +12,11 @@ import Games.FlashCard.Study as Study
 import Games.FlashCard.Practice as Practice
 import Games.FlashCard.Exam as Exam
 import Topic
+import User
 import Util.GameModes as GameModes
 
  -- TODO:  Create a better way to turn two strings into a card
+flashstudyList : Array.Array Card.Model
 flashstudyList = Array.fromList [
     --Card.newNormalCard "Hello (informal)" "안녕하세요",
     --Card.newNormalCard "Hello (formal)" "안녕하습니까",
@@ -25,6 +28,7 @@ flashstudyList = Array.fromList [
     Card.newStudyCard "asdf" "asdf"
   ]
 
+flashpracticeList : Array.Array Card.Model
 flashpracticeList = Array.fromList [
     --Card.newNormalCard "Hello (informal)" "안녕하세요",
     --Card.newNormalCard "Hello (formal)" "안녕하습니까",
@@ -36,6 +40,7 @@ flashpracticeList = Array.fromList [
     Card.newPracticeCard "asdf" "asdf"
   ]
 
+flashexamList : Array.Array Card.Model
 flashexamList = Array.fromList [
     --Card.newNormalCard "Hello (informal)" "안녕하세요",
     --Card.newNormalCard "Hello (formal)" "안녕하습니까",
@@ -105,13 +110,14 @@ greetingsTopic =
     exam = exam
   }
 
+topics : Dict.Dict String Topic.Model
 topics =
   Dict.empty
   |> Dict.insert "Position" positionTopic
   |> Dict.insert "Greetings" greetingsTopic
   |> Dict.insert "Test Sub Topic" testSubTopic
 
-
+flashcardgamemodel : FlashCardGame.Model
 flashcardgamemodel =
   {
     currentMode = GameModes.TopicMode,
@@ -135,9 +141,29 @@ siteheader = {
     usercontrol = usercontrol
   }
 
+registration : Registration.Model
+registration = {
+    name = "",
+    email = "",
+    pass = "",
+    pass_second = "",
+    err = ""
+  }
+
+-- MAIN MODEL -- This has to be here to prevent circular dependency
+type alias Model =
+  {
+    user: Maybe User.Model,
+    header: SiteHeader.Model,
+    registration: Maybe Registration.Model,
+    game: FlashCardGame.Model
+  }
+
+model : Model
 model =
   {
     user = Nothing,
+    registration = Just registration,
     header = siteheader,
     game = flashcardgamemodel
   }

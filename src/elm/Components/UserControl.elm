@@ -57,5 +57,6 @@ usercontrol model =
     input [ type_ "text" , placeholder "User", onInput Name ] [],
     input [ type_ "password", onInput Pass ] [],
     button [ onClick (Pass "balls") ] [ text "Login" ],
-    text model.pass
+    text model.pass,
+    text model.err
   ]
