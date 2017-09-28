@@ -15,7 +15,6 @@ import Topic
 import User
 import Util.GameModes as GameModes
 
- -- TODO:  Create a better way to turn two strings into a card
 flashstudyList : Array.Array Card.Model
 flashstudyList = Array.fromList [
     --Card.newNormalCard "Hello (informal)" "안녕하세요",
@@ -47,7 +46,7 @@ flashexamList = Array.fromList [
     --Card.newNormalCard "How are you?" "안녕한셨습니까?",
     --Card.newNormalCard "Good morning" "좋은 아침",
     --Card.newNormalCard "Good evening" "좋은 저녁",
-    --Card.newNormalCard "Good night" "절자"
+    --Card.newNormalCard "Good night" "잘자"
     Card.newExamCard "test" "test",
     Card.newExamCard "asdf" "asdf"
   ]
