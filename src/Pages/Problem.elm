@@ -3,8 +3,7 @@
 
 module Pages.Problem exposing (notFound, styles)
 
-import Html exposing (Attribute, Html, div, text)
-import Html.Attributes exposing (style)
+import Element exposing (Attribute, Element, text)
 
 
 
@@ -19,16 +18,11 @@ type alias Model =
 -- NOT FOUND
 
 
-notFound : List (Html msg)
+notFound : Element msg
 notFound =
-    [ div [ style "font-size" "12em" ] [ text "404" ]
-    , div [ style "font-size" "3em" ] [ text "I cannot find this page!" ]
-    ]
+    text "404 - I cannot find this page!"
 
 
 styles : List (Attribute msg)
 styles =
-    [ style "text-align" "center"
-    , style "color" "#9A9A9A"
-    , style "padding" "6em 0"
-    ]
+    []

@@ -151,7 +151,7 @@ view model =
             viewPage never
                 { title = "Not Found"
                 , attrs = Problem.styles
-                , kids = Problem.notFound
+                , body = Problem.notFound
                 }
 
         Landing pageModel ->
@@ -169,7 +169,7 @@ view model =
                 never
                 { title = "Not Found"
                 , attrs = Problem.styles
-                , kids = Problem.notFound
+                , body = Problem.notFound
                 }
 
 

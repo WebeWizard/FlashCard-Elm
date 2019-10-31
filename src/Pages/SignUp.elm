@@ -1,9 +1,9 @@
 module Pages.SignUp exposing (Model, Msg, init, update, view)
 
-import Html exposing (Html, div, input, text)
-import Html.Attributes exposing (placeholder, type_, value)
-import Html.Events exposing (onInput)
+import Element exposing (column, text)
+import Element.Input as Input exposing (button, labelHidden, labelLeft, newPassword, placeholder, username)
 import Http
+import Json.Encode as Encode
 import Skeleton
 
 
@@ -43,7 +43,8 @@ type Msg
     | Secret String
     | Verify String
     | Error String
-    | SignedUp
+    | SignUp
+    | GotSignUp (Result String ())
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -61,8 +62,16 @@ update msg model =
         Error error ->
             ( { model | error = Just error }, Cmd.none )
 
-        SignedUp ->
-            ( model, Cmd.none )
+        SignUp ->
+            ( model, signup model )
+
+        GotSignUp result ->
+            case result of
+                Ok () ->
+                    ( { model | error = Nothing }, Cmd.none )
+
+                Err errorText ->
+                    ( { model | error = Just errorText }, Cmd.none )
 
 
 
@@ -73,14 +82,33 @@ view : Model -> Skeleton.Details Msg
 view model =
     { title = "SignUp"
     , attrs = []
-    , kids =
-        [ div
-            []
-            ([ input [ placeholder "Email Address", value model.email, onInput Email ] []
-             , input [ type_ "Password", value model.secret, onInput Secret ] []
-             , input [ type_ "Verify Password", value model.verify, onInput Verify ] []
+    , body =
+        column []
+            ([ username []
+                { onChange = Email
+                , placeholder = Just (placeholder [] (text "Email Address"))
+                , label = labelHidden "Email Address"
+                , text = model.email
+                }
+             , newPassword []
+                { onChange = Secret
+                , placeholder = Just (placeholder [] (text "Password"))
+                , label = labelHidden "Password"
+                , text = model.secret
+                , show = False
+                }
+             , newPassword []
+                { onChange = Verify
+                , placeholder = Just (placeholder [] (text "Verify Password"))
+                , label = labelHidden "Re-enter Password"
+                , text = model.verify
+                , show = False
+                }
+             , button []
+                { onPress = Just SignUp
+                , label = text "Sign up"
+                }
              ]
-                -- add error message if exists
                 ++ (case model.error of
                         Just error ->
                             [ text error ]
@@ -89,9 +117,33 @@ view model =
                             []
                    )
             )
-        ]
     }
 
 
 
 -- HTTP
+
+
+signup : Model -> Cmd Msg
+signup model =
+    Http.post
+        { url = "http://localhost:8080/account/create"
+        , body =
+            Encode.object
+                [ ( "email", Encode.string model.email )
+                , ( "secret", Encode.string model.secret )
+                ]
+                |> Http.jsonBody
+        , expect =
+            Http.expectStringResponse GotSignUp <|
+                \response ->
+                    case response of
+                        Http.GoodStatus_ metadata body ->
+                            Ok ()
+
+                        Http.BadStatus_ metadata body ->
+                            Err body
+
+                        _ ->
+                            Err "Service error while signing up. Please try again"
+        }

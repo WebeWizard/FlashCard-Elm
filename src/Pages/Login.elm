@@ -1,8 +1,8 @@
 module Pages.Login exposing (Model, Msg, init, update, view)
 
-import Html exposing (Html, button, div, input, text)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Element exposing (centerX, centerY, column, paddingXY, rgb255, text)
+import Element.Background as Background
+import Element.Input as Input exposing (button, currentPassword, labelHidden, placeholder, username)
 import Http
 import Json.Encode as Encode
 import Session exposing (Session)
@@ -86,13 +86,31 @@ view : Model -> Skeleton.Details Msg
 view model =
     { title = "Login"
     , attrs = []
-    , kids =
-        [ div []
-            ([ input [ placeholder "Email Address", value model.email, onInput Email ] []
-             , input [ type_ "Password", value model.secret, onInput Secret ] []
-             , button [ onClick Login ] [ text "test" ]
+    , body =
+        column [ centerX ]
+            ([ username []
+                { onChange = Email
+                , placeholder = Just (placeholder [] (text "Email Address"))
+                , label = labelHidden "Email Address"
+                , text = model.email
+                }
+             , currentPassword []
+                { onChange = Secret
+                , placeholder = Just (placeholder [] (text "Password"))
+                , label = labelHidden "Password"
+                , text = model.secret
+                , show = False
+                }
+             , button
+                [ centerX
+                , centerY
+                , paddingXY 60 8
+                , Background.color (rgb255 14 183 196)
+                ]
+                { onPress = Just Login
+                , label = text "Log in"
+                }
              ]
-                -- add error message if exists
                 ++ (case model.error of
                         Just error ->
                             [ text error ]
@@ -101,7 +119,6 @@ view model =
                             []
                    )
             )
-        ]
     }
 
 

@@ -3,8 +3,7 @@
 
 module Pages.Landing exposing (Model, Msg, init, update, view)
 
-import Html exposing (Attribute, Html, a, div, text)
-import Html.Attributes exposing (href)
+import Element exposing (el, text)
 import Skeleton
 
 
@@ -46,9 +45,8 @@ update msg model =
 
 view : Model -> Skeleton.Details Msg
 view model =
-    { title = "Landing"
+    { title = "WebeWizard"
     , attrs = []
-    , kids =
-        [ text "This is the Landing Page"
-        ]
+    , body =
+        text "Elm + Rust"
     }
