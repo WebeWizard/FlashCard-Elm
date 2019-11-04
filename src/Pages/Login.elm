@@ -1,7 +1,9 @@
 module Pages.Login exposing (Model, Msg, init, update, view)
 
-import Element exposing (centerX, centerY, column, paddingXY, rgb255, text)
+import Element exposing (width, height, px,centerX, centerY, column, paddingXY, rgb255, text, el,spacing)
 import Element.Background as Background
+import Element.Border as Border
+import Element.Font as Font
 import Element.Input as Input exposing (button, currentPassword, labelHidden, placeholder, username)
 import Http
 import Json.Encode as Encode
@@ -87,7 +89,7 @@ view model =
     { title = "Login"
     , attrs = []
     , body =
-        column [ centerX ]
+        column [ centerX, spacing 10 ]
             ([ username []
                 { onChange = Email
                 , placeholder = Just (placeholder [] (text "Email Address"))
@@ -103,9 +105,9 @@ view model =
                 }
              , button
                 [ centerX
-                , centerY
-                , paddingXY 60 8
+                , paddingXY 80 8
                 , Background.color (rgb255 14 183 196)
+                , Border.rounded 3
                 ]
                 { onPress = Just Login
                 , label = text "Log in"

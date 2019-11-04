@@ -1,6 +1,8 @@
 module Pages.SignUp exposing (Model, Msg, init, update, view)
 
-import Element exposing (column, text)
+import Element exposing (column, text, paddingXY, rgb255, centerX, spacing)
+import Element.Border as Border
+import Element.Background as Background
 import Element.Input as Input exposing (button, labelHidden, labelLeft, newPassword, placeholder, username)
 import Http
 import Json.Encode as Encode
@@ -83,7 +85,7 @@ view model =
     { title = "SignUp"
     , attrs = []
     , body =
-        column []
+        column [centerX, spacing 10]
             ([ username []
                 { onChange = Email
                 , placeholder = Just (placeholder [] (text "Email Address"))
@@ -104,7 +106,11 @@ view model =
                 , text = model.verify
                 , show = False
                 }
-             , button []
+             , button [ centerX
+                , paddingXY 80 8
+                , Background.color (rgb255 14 183 196)
+                , Border.rounded 3
+                ]
                 { onPress = Just SignUp
                 , label = text "Sign up"
                 }
