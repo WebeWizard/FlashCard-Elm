@@ -8,6 +8,7 @@ import Element exposing (Attribute, Element, alignBottom, alignRight, centerX, c
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Element.Input as Input exposing (button)
 import Session exposing (Session)
 
 
@@ -20,6 +21,10 @@ type alias Details msg =
     , attrs : List (Attribute msg)
     , body : Element msg
     }
+
+
+type Msg
+    = Logout
 
 
 view : Maybe Session -> (a -> msg) -> Details a -> Browser.Document msg
@@ -49,21 +54,29 @@ view maybeSession toMsg details =
                         , color = rgb255 232 232 233
                         }
                     ]
-                    [ link []
+                    ([ link []
                         { url = "/"
                         , label = text "WebeWizard"
                         }
-                    , text "About"
-                    , text "Blog"
-                    , link [ alignRight ]
-                        { url = "login"
-                        , label = text "Login"
-                        }
-                    , link [ alignRight ]
-                        { url = "signup"
-                        , label = text "SignUp"
-                        }
-                    ]
+                     , text "About"
+                     , text "Blog"
+                     ]
+                        ++ (case maybeSession of
+                                Just session ->
+                                    [ link [ alignRight ] { url = "logout", label = text "Logout" } ]
+
+                                Nothing ->
+                                    [ link [ alignRight ]
+                                        { url = "/login"
+                                        , label = text "Login"
+                                        }
+                                    , link [ alignRight ]
+                                        { url = "/signup"
+                                        , label = text "SignUp"
+                                        }
+                                    ]
+                           )
+                    )
                 , el
                     [ width fill
                     , height
@@ -83,33 +96,4 @@ view maybeSession toMsg details =
                 ]
             )
         ]
-
-    -- [ viewHeader maybeSession
-    -- , Html.map toMsg <|
-    --     div (class "center" :: details.attrs) details.kids
-    -- , viewFooter
-    -- ]
     }
-
-
-
--- viewHeader : Maybe Session -> Html msg
--- viewHeader maybeSession =
---     div [ class "header" ]
---         [ text "WebeWizard"
---         , div [ class "header-buttons" ]
---             ([]
---                 ++ (case maybeSession of
---                         Just session ->
---                             [ a [ href "profile" ] [ text "Profile" ] ]
---                         Nothing ->
---                             [ a [ href "signup" ] [ text "Sign Up" ]
---                             , a [ href "login" ] [ text "Login" ]
---                             ]
---                    )
---             )
---         ]
--- viewFooter : Html msg
--- viewFooter =
---     div [ class "footer" ]
---         [ text "this is the footer" ]

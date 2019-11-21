@@ -3,9 +3,8 @@
 
 port module Session exposing (..)
 
-import Json.Decode as Decode exposing (field, maybe, string)
+import Json.Decode as Decode exposing (field, int, maybe, string)
 import Json.Encode as Encode exposing (Value)
-import Json.Encode.Extra as Extra
 
 
 
@@ -13,18 +12,18 @@ import Json.Encode.Extra as Extra
 
 
 type alias Session =
-    { accountId : String
-    , userId : Maybe String
-    , token : String
+    { token : String
+    , accountId : String
+    , timeout : Int
     }
 
 
 decoder : Decode.Decoder Session
 decoder =
     Decode.map3 Session
-        (field "accountId" string)
-        (maybe (field "userId" string))
         (field "token" string)
+        (field "account_id" string)
+        (field "timeout" int)
 
 
 
@@ -36,9 +35,9 @@ store session =
     let
         json =
             Encode.object
-                [ ( "accountId", Encode.string session.accountId )
-                , ( "userId", Extra.maybe Encode.string session.userId )
-                , ( "token", Encode.string session.token )
+                [ ( "token", Encode.string session.token )
+                , ( "accountId", Encode.string session.accountId )
+                , ( "timeout", Encode.int session.timeout )
                 ]
     in
     storeSession (Just json)

@@ -1,4 +1,4 @@
-module Pages.Login exposing (Model, Msg, init, update, view)
+module Pages.Verify exposing (Model, Msg, init, update, view)
 
 import Element exposing (centerX, centerY, column, el, height, paddingXY, px, rgb255, spacing, text, width)
 import Element.Background as Background
@@ -16,7 +16,8 @@ import Skeleton exposing (Details)
 
 
 type alias Model =
-    { email : String
+    { code : String
+    , email : String
     , secret : String
     , error : Maybe String
     }
@@ -24,7 +25,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { email = "", secret = "", error = Nothing }, Cmd.none )
+    ( { code = "", email = "", secret = "", error = Nothing }, Cmd.none )
 
 
 
@@ -35,8 +36,8 @@ type Msg
     = Email String
     | Secret String
     | Error String
-    | Login
-    | GotLogin (Result Http.Error Session)
+    | Verify
+    | GotVerify (Result Http.Error Session)
     | SaveSuccess
 
 
@@ -52,10 +53,10 @@ update msg model =
         Error error ->
             ( { model | error = Just error }, Cmd.none )
 
-        Login ->
-            ( model, login model )
+        Verify ->
+            ( model, verify model )
 
-        GotLogin result ->
+        GotVerify result ->
             case result of
                 Ok session ->
                     ( { model | error = Nothing }, Session.store session )
@@ -72,10 +73,10 @@ update msg model =
                                         "Email or Password incorrect."
 
                                     else
-                                        "Unable to Log in at this time."
+                                        "Unable to Verify at this time."
 
                                 _ ->
-                                    "Unable to Log in at this time."
+                                    "Unable to Verify at this time."
                     in
                     ( { model | error = Just errorText }, Cmd.none )
 
@@ -89,11 +90,12 @@ update msg model =
 
 view : Model -> Skeleton.Details Msg
 view model =
-    { title = "Login"
+    { title = "Verify"
     , attrs = []
     , body =
         column [ centerX, spacing 10 ]
-            ([ username []
+            ([ text "Enter Credentials to Complete Verification"
+             , username []
                 { onChange = Email
                 , placeholder = Just (placeholder [] (text "Email Address"))
                 , label = labelHidden "Email Address"
@@ -112,8 +114,8 @@ view model =
                 , Background.color (rgb255 14 183 196)
                 , Border.rounded 3
                 ]
-                { onPress = Just Login
-                , label = text "Log in"
+                { onPress = Just Verify
+                , label = text "Verify"
                 }
              ]
                 ++ (case model.error of
@@ -131,15 +133,16 @@ view model =
 -- HTTP
 
 
-login : Model -> Cmd Msg
-login model =
+verify : Model -> Cmd Msg
+verify model =
     Http.post
-        { url = "http://localhost:8080/login"
+        { url = "http://localhost:8080/account/verify"
         , body =
             Encode.object
-                [ ( "email", Encode.string model.email )
+                [ ( "code", Encode.string model.code )
+                , ( "email", Encode.string model.email )
                 , ( "pass", Encode.string model.secret )
                 ]
                 |> Http.jsonBody
-        , expect = Http.expectJson GotLogin Session.decoder
+        , expect = Http.expectJson GotVerify Session.decoder
         }

@@ -5,12 +5,13 @@ port module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
-import Json.Decode exposing (Value, decodeValue, string)
+import Json.Decode exposing (Value, decodeValue)
 import Pages.Landing as Landing exposing (Model)
 import Pages.Login as Login exposing (Model)
 import Pages.Problem as Problem
 import Pages.Settings as Settings exposing (Model)
 import Pages.SignUp as SignUp exposing (Model)
+import Pages.Verify as Verify exposing (Model)
 import Session exposing (Session)
 import Skeleton
 import Url
@@ -49,6 +50,7 @@ type Page
     | SignUp SignUp.Model
     | Login Login.Model
     | Settings Settings.Model
+    | Verify Verify.Model
 
 
 
@@ -74,6 +76,7 @@ type Msg
     | LoginMsg Login.Msg
     | SignUpMsg SignUp.Msg
     | SettingsMsg Settings.Msg
+    | VerifyMsg Verify.Msg
     | UrlChanged Url.Url
     | SessionChanged Value
 
@@ -84,10 +87,6 @@ update message model =
         SessionChanged value ->
             case decodeValue Session.decoder value of
                 Ok session ->
-                    let
-                        asdf =
-                            Debug.log "test" session
-                    in
                     ( { model | session = Just session }, Cmd.none )
 
                 Err error ->
@@ -132,6 +131,14 @@ update message model =
                 _ ->
                     ( model, Cmd.none )
 
+        VerifyMsg msg ->
+            case model.page of
+                Verify pageModel ->
+                    stepVerify model (Verify.update msg pageModel) pageModel.code
+
+                _ ->
+                    ( model, Cmd.none )
+
         _ ->
             ( model, Cmd.none )
 
@@ -162,6 +169,9 @@ view model =
 
         SignUp pageModel ->
             viewPage SignUpMsg (SignUp.view pageModel)
+
+        Verify pageModel ->
+            viewPage VerifyMsg (Verify.view pageModel)
 
         _ ->
             -- TODO: implement the rest
@@ -196,6 +206,8 @@ stepUrl url model =
                     (stepSignUp model SignUp.init)
                 , route (s "login")
                     (stepLogin model Login.init)
+                , route (s "verify" </> string)
+                    (stepVerify model Verify.init)
                 ]
     in
     case Parser.parse parser url of
@@ -224,6 +236,13 @@ stepLogin : Model -> ( Login.Model, Cmd Login.Msg ) -> ( Model, Cmd Msg )
 stepLogin mainModel ( pageModel, cmds ) =
     ( { mainModel | page = Login pageModel }
     , Cmd.map LoginMsg cmds
+    )
+
+
+stepVerify : Model -> ( Verify.Model, Cmd Verify.Msg ) -> String -> ( Model, Cmd Msg )
+stepVerify mainModel ( pageModel, cmds ) code =
+    ( { mainModel | page = Verify { pageModel | code = code } }
+    , Cmd.map VerifyMsg cmds
     )
 
 
