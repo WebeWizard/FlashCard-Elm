@@ -58,13 +58,10 @@ update msg model =
         GotLogin result ->
             case result of
                 Ok session ->
-                    ( { model | error = Nothing }, Session.store session )
+                    ( { model | error = Nothing }, Session.store (Just session) )
 
                 Err error ->
                     let
-                        asdf =
-                            Debug.log "error" error
-
                         errorText =
                             case error of
                                 Http.BadStatus status ->

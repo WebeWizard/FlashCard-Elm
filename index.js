@@ -15,11 +15,11 @@ console.log(app);
 
 app.ports.storeSession.subscribe(function (val) {
   if (val === null) {
-    localStorage.removeItem(key)
+    localStorage.removeItem(Constants.storageKeys.session)
   } else {
     localStorage.setItem(Constants.storageKeys.session, JSON.stringify(val))
   }
-  // Report that the new session was stored succesfully.
+  // Report that the session was updated succesfully.
   setTimeout(function () { app.ports.updateSession.send(val) }, 0)
 })
 

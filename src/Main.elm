@@ -5,7 +5,9 @@ port module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
-import Json.Decode exposing (Value, decodeValue)
+import Http
+import Json.Decode exposing (Value, decodeValue, nullable)
+import Json.Encode as Encode
 import Pages.Landing as Landing exposing (Model)
 import Pages.Login as Login exposing (Model)
 import Pages.Problem as Problem
@@ -74,20 +76,27 @@ type Msg
     = LandingMsg Landing.Msg
     | LinkClicked Browser.UrlRequest
     | LoginMsg Login.Msg
+    | GotLogout (Result Http.Error ())
     | SignUpMsg SignUp.Msg
     | SettingsMsg Settings.Msg
     | VerifyMsg Verify.Msg
     | UrlChanged Url.Url
     | SessionChanged Value
+    | SkelMsg Skeleton.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
         SessionChanged value ->
-            case decodeValue Session.decoder value of
-                Ok session ->
-                    ( { model | session = Just session }, Cmd.none )
+            case decodeValue (nullable Session.decoder) value of
+                Ok maybeSession ->
+                    case model.session of
+                        Just existingSession ->
+                            ( { model | session = maybeSession }, logout existingSession )
+
+                        Nothing ->
+                            ( { model | session = maybeSession }, Cmd.none )
 
                 Err error ->
                     ( model, Cmd.none )
@@ -106,6 +115,18 @@ update message model =
 
         UrlChanged url ->
             stepUrl url model
+
+        SkelMsg msg ->
+            case msg of
+                Skeleton.Logout ->
+                    -- TODO: fire logout request, but don't care about response(?)
+                    case model.session of
+                        Just session ->
+                            -- Return to Landing page
+                            ( Tuple.first (stepLanding model Landing.init), Session.store Nothing )
+
+                        Nothing ->
+                            ( model, Cmd.none )
 
         LandingMsg msg ->
             case model.page of
@@ -139,6 +160,10 @@ update message model =
                 _ ->
                     ( model, Cmd.none )
 
+        GotLogout _ ->
+            -- result probably doesn't matter
+            ( { model | session = Nothing }, Cmd.none )
+
         _ ->
             ( model, Cmd.none )
 
@@ -151,7 +176,7 @@ view : Model -> Browser.Document Msg
 view model =
     let
         viewPage =
-            Skeleton.view model.session
+            Skeleton.view SkelMsg model.session
     in
     case model.page of
         NotFound ->
@@ -271,3 +296,16 @@ port updateSession : (Value -> msg) -> Sub msg
 
 
 -- HTTP
+
+
+logout : Session -> Cmd Msg
+logout session =
+    Http.post
+        { url = "http://localhost:8080/logout/"
+        , body =
+            Encode.object
+                [ ( "token", Encode.string session.token )
+                ]
+                |> Http.jsonBody
+        , expect = Http.expectWhatever GotLogout
+        }

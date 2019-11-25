@@ -59,7 +59,7 @@ update msg model =
         GotVerify result ->
             case result of
                 Ok session ->
-                    ( { model | error = Nothing }, Session.store session )
+                    ( { model | error = Nothing }, Session.store (Just session) )
 
                 Err error ->
                     let

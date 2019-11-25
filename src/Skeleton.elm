@@ -1,7 +1,7 @@
 -- Skeleton.elm - page layout/skeleton for the user interface
 
 
-module Skeleton exposing (Details, view)
+module Skeleton exposing (Details, Msg(..), view)
 
 import Browser
 import Element exposing (Attribute, Element, alignBottom, alignRight, centerX, centerY, column, el, fill, height, html, link, maximum, minimum, padding, px, rgb255, row, spacing, text, width)
@@ -10,6 +10,14 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input exposing (button)
 import Session exposing (Session)
+
+
+
+-- UPDATE
+
+
+type Msg
+    = Logout
 
 
 
@@ -23,12 +31,8 @@ type alias Details msg =
     }
 
 
-type Msg
-    = Logout
-
-
-view : Maybe Session -> (a -> msg) -> Details a -> Browser.Document msg
-view maybeSession toMsg details =
+view : (Msg -> msg) -> Maybe Session -> (b -> msg) -> Details b -> Browser.Document msg
+view toSkelMsg maybeSession toDetailsMsg details =
     { title =
         details.title
     , body =
@@ -63,7 +67,7 @@ view maybeSession toMsg details =
                      ]
                         ++ (case maybeSession of
                                 Just session ->
-                                    [ link [ alignRight ] { url = "logout", label = text "Logout" } ]
+                                    [ button [ alignRight ] { onPress = Just (toSkelMsg Logout), label = text "Logout" } ]
 
                                 Nothing ->
                                     [ link [ alignRight ]
@@ -85,7 +89,7 @@ view maybeSession toMsg details =
                             |> maximum 600
                         )
                     ]
-                    (Element.map toMsg details.body)
+                    (Element.map toDetailsMsg details.body)
                 , row
                     [ alignBottom
                     , width fill

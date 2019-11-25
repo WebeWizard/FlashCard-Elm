@@ -22,7 +22,7 @@ decoder : Decode.Decoder Session
 decoder =
     Decode.map3 Session
         (field "token" string)
-        (field "account_id" string)
+        (field "accountId" string)
         (field "timeout" int)
 
 
@@ -30,17 +30,22 @@ decoder =
 -- PERSISTENCE
 
 
-store : Session -> Cmd msg
-store session =
-    let
-        json =
-            Encode.object
-                [ ( "token", Encode.string session.token )
-                , ( "accountId", Encode.string session.accountId )
-                , ( "timeout", Encode.int session.timeout )
-                ]
-    in
-    storeSession (Just json)
+store : Maybe Session -> Cmd msg
+store maybeSession =
+    case maybeSession of
+        Just session ->
+            let
+                json =
+                    Encode.object
+                        [ ( "token", Encode.string session.token )
+                        , ( "accountId", Encode.string session.accountId )
+                        , ( "timeout", Encode.int session.timeout )
+                        ]
+            in
+            storeSession (Just json)
+
+        Nothing ->
+            storeSession Nothing
 
 
 port storeSession : Maybe Value -> Cmd msg
