@@ -3,7 +3,7 @@
 
 port module Session exposing (..)
 
-import Json.Decode as Decode exposing (field, int, maybe, string)
+import Json.Decode as Decode exposing (field, int, string)
 import Json.Encode as Encode exposing (Value)
 
 

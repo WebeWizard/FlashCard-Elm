@@ -11,7 +11,6 @@ var flags = {
 }
 
 var app = Elm.Main.init({ flags: flags })
-console.log(app);
 
 app.ports.storeSession.subscribe(function (val) {
   if (val === null) {
@@ -31,3 +30,10 @@ window.addEventListener("storage", function (event) {
     }
   }
 }, false)
+
+// Resume session if available
+var session = localStorage.getItem(Constants.storageKeys.session);
+if (session) {
+  app.ports.updateSession.send(JSON.parse(session));
+}
+
