@@ -8,6 +8,7 @@ import Browser.Navigation as Nav
 import Http
 import Json.Decode exposing (Value, decodeValue, nullable)
 import Json.Encode as Encode
+import Pages.FlashHome as FlashHome exposing (Model)
 import Pages.Landing as Landing exposing (Model)
 import Pages.Login as Login exposing (Model)
 import Pages.Problem as Problem
@@ -53,9 +54,12 @@ type Page
     | Login Login.Model
     | Settings Settings.Model
     | Verify Verify.Model
+    | FlashHome FlashHome.Model -- view existing decks, create new decks
 
 
 
+-- | DeckEditor DeckEditor.Model -- rename deck, create/update/delete cards
+-- | FlashGame FlashGame.Model -- view one card at a time, toggle question or answer visible, rate how well you know card.
 -- INIT
 
 
@@ -73,7 +77,8 @@ init _ url key =
 
 
 type Msg
-    = LandingMsg Landing.Msg
+    = FlashHomeMsg FlashHome.Msg
+    | LandingMsg Landing.Msg
     | LinkClicked Browser.UrlRequest
     | LoginMsg Login.Msg
     | GotLogout (Result Http.Error ())
@@ -91,12 +96,18 @@ update message model =
         SessionChanged value ->
             case decodeValue (nullable Session.decoder) value of
                 Ok maybeSession ->
-                    case model.session of
-                        Just existingSession ->
-                            ( { model | session = maybeSession }, logout existingSession )
+                    let
+                        newModel =
+                            { model | session = maybeSession }
+                    in
+                    case maybeSession of
+                        Just newSession ->
+                            -- logged in. Go to flash home
+                            stepFlashHome newModel (FlashHome.init newSession)
 
                         Nothing ->
-                            ( { model | session = maybeSession }, Cmd.none )
+                            -- logged out. Return to landing
+                            stepLanding newModel Landing.init
 
                 Err error ->
                     ( model, Cmd.none )
@@ -186,6 +197,9 @@ view model =
                 , body = Problem.notFound
                 }
 
+        FlashHome pageModel ->
+            viewPage FlashHomeMsg (FlashHome.view pageModel)
+
         Landing pageModel ->
             viewPage LandingMsg (Landing.view pageModel)
 
@@ -247,6 +261,13 @@ stepLanding : Model -> ( Landing.Model, Cmd Landing.Msg ) -> ( Model, Cmd Msg )
 stepLanding mainModel ( pageModel, cmds ) =
     ( { mainModel | page = Landing pageModel }
     , Cmd.map LandingMsg cmds
+    )
+
+
+stepFlashHome : Model -> ( FlashHome.Model, Cmd FlashHome.Msg ) -> ( Model, Cmd Msg )
+stepFlashHome mainModel ( pageModel, cmds ) =
+    ( { mainModel | page = FlashHome pageModel }
+    , Cmd.map FlashHomeMsg cmds
     )
 
 

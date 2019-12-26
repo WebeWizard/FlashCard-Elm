@@ -131,7 +131,7 @@ view model =
 login : Model -> Cmd Msg
 login model =
     Http.post
-        { url = "http://localhost:8080/login"
+        { url = "http://localhost:8080/login" -- urls should be constants stored somewhere else
         , body =
             Encode.object
                 [ ( "email", Encode.string model.email )

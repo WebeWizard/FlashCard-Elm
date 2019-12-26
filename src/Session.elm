@@ -3,6 +3,7 @@
 
 port module Session exposing (..)
 
+import Http
 import Json.Decode as Decode exposing (field, int, string)
 import Json.Encode as Encode exposing (Value)
 
@@ -49,3 +50,12 @@ store maybeSession =
 
 
 port storeSession : Maybe Value -> Cmd msg
+
+
+
+-- HTTP
+
+
+getHeader : Session -> Http.Header
+getHeader session =
+    Http.header "x-webe-token" session.token
