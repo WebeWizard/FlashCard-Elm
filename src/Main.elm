@@ -175,6 +175,14 @@ update message model =
             -- result probably doesn't matter
             ( { model | session = Nothing }, Cmd.none )
 
+        FlashHomeMsg msg ->
+            case model.page of
+                FlashHome pageModel ->
+                    stepFlashHome model (FlashHome.update msg pageModel)
+
+                _ ->
+                    ( model, Cmd.none )
+
         _ ->
             ( model, Cmd.none )
 

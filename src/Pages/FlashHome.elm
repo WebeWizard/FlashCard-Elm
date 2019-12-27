@@ -1,20 +1,15 @@
 module Pages.FlashHome exposing (Model, Msg, init, update, view)
 
-import Element exposing (text)
+import Element exposing (column, row, text, alignRight, width, fill, paddingXY)
 import Http
 import Json.Decode as Decode exposing (field, string)
 import Session exposing (Session, getHeader)
 import Skeleton exposing (Details)
+import UI.DeckBox as DeckBox exposing (DeckInfo, deckBox)
 
 
 
 -- MODEL
-
-
-type alias DeckInfo =
-    { id : String
-    , name : String
-    }
 
 
 deckInfodecoder : Decode.Decoder DeckInfo
@@ -45,18 +40,37 @@ type Msg
     | Error String
     | CreateDeck
     | DeleteDeck
+    | DeckBoxMsg DeckBox.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    let asdf = Debug.log "msg" msg in
+        case msg of
+            GotDecks result ->
+                case result of
+                    Ok decks ->
+                        let test = Debug.log "decks" decks in
+                            ( {model | decks = Just decks}, Cmd.none)
+                    Err error ->
+                        let test = Debug.log "error" error in
+                        
+                            ( model, Cmd.none ) -- TODO: show errors somewhere
+            _ ->
+                ( model, Cmd.none )
 
 
 view : Model -> Skeleton.Details Msg
 view model =
     { title = "FlashHome"
     , attrs = []
-    , body = text "this is the flash home / deck manager"
+    , body = column [paddingXY 80 8, width fill] (
+        (row [alignRight] [text "+New Deck"])
+        ::(case model.decks of
+           Just deck_list ->
+            List.map (deckBox DeckBoxMsg) deck_list
+           Nothing -> []
+        ))
     }
 
 
@@ -75,3 +89,4 @@ loadDecks session =
         , timeout = Nothing
         , tracker = Nothing
         }
+
