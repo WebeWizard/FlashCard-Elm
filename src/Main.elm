@@ -15,6 +15,7 @@ import Pages.Problem as Problem
 import Pages.Settings as Settings exposing (Model)
 import Pages.SignUp as SignUp exposing (Model)
 import Pages.Verify as Verify exposing (Model)
+import Platform.Cmd exposing (batch)
 import Session exposing (Session)
 import Skeleton
 import Url
@@ -103,7 +104,7 @@ update message model =
                     case maybeSession of
                         Just newSession ->
                             -- logged in. Go to flash home
-                            stepFlashHome newModel (FlashHome.init newSession)
+                            (newModel, Nav.pushUrl model.key "flash")
 
                         Nothing ->
                             -- logged out. Return to landing
@@ -130,14 +131,13 @@ update message model =
         SkelMsg msg ->
             case msg of
                 Skeleton.Logout ->
-                    -- TODO: fire logout request, but don't care about response(?)
                     case model.session of
                         Just session ->
                             -- Return to Landing page
-                            ( Tuple.first (stepLanding model Landing.init), Session.store Nothing )
+                            ( Tuple.first (stepLanding model Landing.init), batch [logout session, Session.store Nothing, Nav.pushUrl model.key "/"] )
 
                         Nothing ->
-                            ( model, Cmd.none )
+                            ( model, Nav.pushUrl model.key "/" )
 
         LandingMsg msg ->
             case model.page of
@@ -172,7 +172,7 @@ update message model =
                     ( model, Cmd.none )
 
         GotLogout _ ->
-            -- result probably doesn't matter
+            -- result probably doesn't matter.
             ( { model | session = Nothing }, Cmd.none )
 
         FlashHomeMsg msg ->
@@ -255,6 +255,12 @@ stepUrl url model =
                     (stepLogin model Login.init)
                 , route (s "verify" </> string)
                     (stepVerify model Verify.init)
+                , route (s "flash")
+                    -- if no session present, show login
+                    (case session of
+                       Just hasSession -> stepFlashHome model (FlashHome.init hasSession)
+                       Nothing -> stepLogin model Login.init
+                    )
                 ]
     in
     case Parser.parse parser url of
