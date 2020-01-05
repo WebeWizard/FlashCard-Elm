@@ -3,9 +3,10 @@
 -- Clicking the pencil at the top right should let you edit the deck (manage cards, rename, delete, etc)
 
 
-module FlashGame.UI.DeckBox exposing (DeckInfo, Msg(..), deckBox)
+module FlashGame.UI.DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
 
 import Element exposing (Element, el, rgb255, row, text)
+import Element.Events exposing (onLoseFocus)
 import Element.Border as Border
 import Element.Input as Input exposing (button, labelHidden)
 
@@ -15,26 +16,45 @@ type alias DeckInfo =
     , name : String
     }
 
+type EditMode
+    = Editing
+    | Uploading
+
+type alias EditDetails =
+    {mode: EditMode, id: String, tempName: String}
+
 
 type Msg
-    = Edit String
+    = Edit String String -- Edit id curName
+    | EndEdit
     | Name String
     | Start String
 
 
-deckBox : (Msg -> msg) -> String -> DeckInfo -> Element msg
-deckBox toMsg editId info =
+deckBox : (Msg -> msg) -> Maybe EditDetails -> DeckInfo -> Element msg
+deckBox toMsg edit info =
     el [ Border.width 1, Border.color (rgb255 0 0 0), Border.rounded 3 ]
         (row []
             [ text info.id
-            , if editId == info.id then
-                Input.text [] { onChange = \name -> toMsg (Name name), text = info.name, placeholder = Nothing, label = labelHidden "New Name" }
-
-              else
-                button
-                    []
-                    { onPress = Just (toMsg (Edit info.id))
-                    , label = text info.name
-                    }
+            , case edit of
+                Just editDetails ->
+                    if info.id == editDetails.id then
+                        Input.text
+                        [ onLoseFocus (toMsg EndEdit)]
+                        { onChange = \name -> toMsg (Name name), text = editDetails.tempName, placeholder = Nothing, label = labelHidden "New Name" }
+                    else
+                         button
+                            []
+                            { onPress = Just (toMsg (Edit info.id info.name))
+                            , label = text info.name
+                            }
+                Nothing ->
+                    button
+                        []
+                        { onPress = Just (toMsg (Edit info.id info.name))
+                        , label = text info.name
+                        }
+            
+                
             ]
         )

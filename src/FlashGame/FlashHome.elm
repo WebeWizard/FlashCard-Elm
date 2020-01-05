@@ -1,7 +1,8 @@
 module FlashGame.FlashHome exposing (Model, Msg, init, update, view)
 
+import Json.Encode as Encode
 import Element exposing (alignRight, column, fill, paddingXY, row, text, width)
-import FlashGame.UI.DeckBox as DeckBox exposing (DeckInfo, Msg(..), deckBox)
+import FlashGame.UI.DeckBox as DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
 import Http
 import Json.Decode as Decode exposing (field, string)
 import Session exposing (Session, getHeader)
@@ -23,17 +24,19 @@ type Mode
     = DeckList -- DeckListModel
 
 
+
 type alias Model =
     { session : Session
     , mode : Mode
     , decks : List DeckInfo
-    , editId : String
+    , edit : Maybe EditDetails
     }
 
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( { session = session, mode = DeckList, decks = [], editId = "" }, loadDecks session )
+    ( { session = session, mode = DeckList, decks = [], edit = Nothing }
+    , loadDecks session )
 
 
 
@@ -42,6 +45,7 @@ init session =
 
 type Msg
     = GotDecks (Result Http.Error (List DeckInfo))
+    | GotRenameDeck (Result Http.Error ())
     | DeckBoxMsg DeckBox.Msg
     | Error String
 
@@ -55,12 +59,48 @@ update msg model =
                     ( { model | decks = decks }, Cmd.none )
 
                 Err error ->
-                    ( model, Cmd.none )
+                    ( model, Cmd.none ) -- TODO: handle error
+
+        GotRenameDeck result ->
+            case result of
+                Ok () ->
+                    ( { model |
+                        decks = List.map (
+                            \info ->
+                                    case model.edit of
+                                        Just editDetails ->
+                                            if info.id == editDetails.id then
+                                                {info | name = editDetails.tempName}
+                                            else
+                                                info
+                                        Nothing ->
+                                            info
+                        ) model.decks
+                        , edit = Nothing
+                    }, Cmd.none )
+
+                Err error ->
+                    ( model, Cmd.none ) -- TODO: handle error
 
         DeckBoxMsg deckBoxMsg ->
             case deckBoxMsg of
-                Edit id ->
-                    ( { model | editId = id }, Cmd.none )
+                Edit id curName ->
+                    ( { model | edit = Just {mode = Editing, id = id, tempName = curName} }, Cmd.none )
+
+                Name newName ->
+                    case model.edit of
+                        Just editDetails ->
+                            ( {model | edit = Just {editDetails | tempName = newName}}, Cmd.none)
+                        Nothing ->
+                            (model, Cmd.none)
+
+                EndEdit ->
+                    -- Initiate a name change against the server
+                    case model.edit of
+                        Just editDetails ->
+                            ( {model | edit = Just {editDetails | mode = Uploading}}, renameDeck model.session editDetails)
+                        Nothing ->
+                            (model, Cmd.none)
 
                 _ ->
                     ( model, Cmd.none )
@@ -81,7 +121,7 @@ view model =
     , body =
         column [ paddingXY 80 8, width fill ]
             (row [ alignRight ] [ text "+New Deck" ]
-                :: List.map (deckBox DeckBoxMsg model.editId) model.decks
+                :: List.map (deckBox DeckBoxMsg model.edit) model.decks
             )
     }
 
@@ -98,6 +138,21 @@ loadDecks session =
         , url = "http://localhost:8080/decks" -- urls should be constants stored somewhere else
         , body = Http.emptyBody
         , expect = Http.expectJson GotDecks (Decode.list deckInfodecoder)
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+renameDeck : Session -> EditDetails -> Cmd Msg
+renameDeck session editDetails =
+    Http.request
+        { method = "POST"
+        , headers = [ getHeader session ]
+        , url = "http://localhost:8080/deck/rename" -- urls should be constants stored somewhere else
+        , body = Http.jsonBody <|
+            Encode.object
+                [("deck_id", Encode.string editDetails.id)
+                ,("name", Encode.string editDetails.tempName)]
+        , expect = Http.expectWhatever GotRenameDeck
         , timeout = Nothing
         , tracker = Nothing
         }
