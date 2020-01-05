@@ -5,10 +5,10 @@ port module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
+import FlashGame.FlashHome as FlashHome exposing (Model)
 import Http
 import Json.Decode exposing (Value, decodeValue, nullable)
 import Json.Encode as Encode
-import Pages.FlashHome as FlashHome exposing (Model)
 import Pages.Landing as Landing exposing (Model)
 import Pages.Login as Login exposing (Model)
 import Pages.Problem as Problem
@@ -104,7 +104,7 @@ update message model =
                     case maybeSession of
                         Just newSession ->
                             -- logged in. Go to flash home
-                            (newModel, Nav.pushUrl model.key "flash")
+                            ( newModel, Nav.pushUrl model.key "flash" )
 
                         Nothing ->
                             -- logged out. Return to landing
@@ -134,7 +134,7 @@ update message model =
                     case model.session of
                         Just session ->
                             -- Return to Landing page
-                            ( Tuple.first (stepLanding model Landing.init), batch [logout session, Session.store Nothing, Nav.pushUrl model.key "/"] )
+                            ( Tuple.first (stepLanding model Landing.init), batch [ logout session, Session.store Nothing, Nav.pushUrl model.key "/" ] )
 
                         Nothing ->
                             ( model, Nav.pushUrl model.key "/" )
@@ -258,8 +258,11 @@ stepUrl url model =
                 , route (s "flash")
                     -- if no session present, show login
                     (case session of
-                       Just hasSession -> stepFlashHome model (FlashHome.init hasSession)
-                       Nothing -> stepLogin model Login.init
+                        Just hasSession ->
+                            stepFlashHome model (FlashHome.init hasSession)
+
+                        Nothing ->
+                            stepLogin model Login.init
                     )
                 ]
     in
