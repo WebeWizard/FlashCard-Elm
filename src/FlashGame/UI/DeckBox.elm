@@ -25,9 +25,8 @@ type alias EditDetails =
 
 
 type Msg
-    = Edit String String -- Edit id curName
+    = EditName String String -- Edit id curName
     | EndEdit
-    | Name String
     | Start String
 
 
@@ -38,20 +37,25 @@ deckBox toMsg edit info =
             [ text info.id
             , case edit of
                 Just editDetails ->
+                    -- TODO: if in "uploading" mode, then don't allow more edits. show status?
                     if info.id == editDetails.id then
                         Input.text
                         [ onLoseFocus (toMsg EndEdit)]
-                        { onChange = \name -> toMsg (Name name), text = editDetails.tempName, placeholder = Nothing, label = labelHidden "New Name" }
+                        { onChange = \name -> toMsg (EditName info.id name),
+                          text = editDetails.tempName,
+                          placeholder = Nothing,
+                          label = labelHidden "New Name"
+                        }
                     else
                          button
                             []
-                            { onPress = Just (toMsg (Edit info.id info.name))
+                            { onPress = Just (toMsg (EditName info.id info.name))
                             , label = text info.name
                             }
                 Nothing ->
                     button
                         []
-                        { onPress = Just (toMsg (Edit info.id info.name))
+                        { onPress = Just (toMsg (EditName info.id info.name))
                         , label = text info.name
                         }
             

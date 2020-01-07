@@ -2,6 +2,7 @@ module FlashGame.FlashHome exposing (Model, Msg, init, update, view)
 
 import Json.Encode as Encode
 import Element exposing (alignRight, column, fill, paddingXY, row, text, width)
+import Element.Input exposing (button)
 import FlashGame.UI.DeckBox as DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
 import Http
 import Json.Decode as Decode exposing (field, string)
@@ -84,20 +85,15 @@ update msg model =
 
         DeckBoxMsg deckBoxMsg ->
             case deckBoxMsg of
-                Edit id curName ->
-                    ( { model | edit = Just {mode = Editing, id = id, tempName = curName} }, Cmd.none )
+                EditName id newName ->
+                    ( {model | edit = Just { mode = Editing, id = id, tempName = newName}}, Cmd.none)
 
-                Name newName ->
-                    case model.edit of
-                        Just editDetails ->
-                            ( {model | edit = Just {editDetails | tempName = newName}}, Cmd.none)
-                        Nothing ->
-                            (model, Cmd.none)
 
                 EndEdit ->
                     -- Initiate a name change against the server
                     case model.edit of
                         Just editDetails ->
+                            -- TODO: only do http request if new name doesn't match original
                             ( {model | edit = Just {editDetails | mode = Uploading}}, renameDeck model.session editDetails)
                         Nothing ->
                             (model, Cmd.none)
@@ -120,7 +116,11 @@ view model =
     , attrs = []
     , body =
         column [ paddingXY 80 8, width fill ]
-            (row [ alignRight ] [ text "+New Deck" ]
+            (row [ alignRight ] [ button
+                        []
+                        { onPress = Just (DeckBoxMsg (EditName "new" ""))
+                        , label = text "+New Deck"
+                        } ]
                 :: List.map (deckBox DeckBoxMsg model.edit) model.decks
             )
     }
