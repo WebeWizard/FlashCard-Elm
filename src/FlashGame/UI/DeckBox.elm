@@ -5,10 +5,11 @@
 
 module FlashGame.UI.DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
 
-import Element exposing (Element, el, rgb255, row, text)
-import Element.Events exposing (onLoseFocus)
+import Element exposing (Element, el, htmlAttribute, paddingXY, rgb255, row, spacing, text)
 import Element.Border as Border
+import Element.Events exposing (onLoseFocus)
 import Element.Input as Input exposing (button, labelHidden)
+import Html.Attributes as Attr
 
 
 type alias DeckInfo =
@@ -16,12 +17,14 @@ type alias DeckInfo =
     , name : String
     }
 
+
 type EditMode
     = Editing
     | Uploading
 
+
 type alias EditDetails =
-    {mode: EditMode, id: String, tempName: String}
+    { mode : EditMode, id : String, tempName : String }
 
 
 type Msg
@@ -32,33 +35,34 @@ type Msg
 
 deckBox : (Msg -> msg) -> Maybe EditDetails -> DeckInfo -> Element msg
 deckBox toMsg edit info =
-    el [ Border.width 1, Border.color (rgb255 0 0 0), Border.rounded 3 ]
+    el [ Border.width 1, Border.color (rgb255 0 0 0), Border.rounded 3, paddingXY 10 10 ]
         (row []
-            [ text info.id
-            , case edit of
+            [ case edit of
                 Just editDetails ->
                     -- TODO: if in "uploading" mode, then don't allow more edits. show status?
                     if info.id == editDetails.id then
                         Input.text
-                        [ onLoseFocus (toMsg EndEdit)]
-                        { onChange = \name -> toMsg (EditName info.id name),
-                          text = editDetails.tempName,
-                          placeholder = Nothing,
-                          label = labelHidden "New Name"
-                        }
+                            [ htmlAttribute (Attr.id "active_deck_edit")
+                            , onLoseFocus (toMsg EndEdit)
+                            ]
+                            { onChange = \name -> toMsg (EditName info.id name)
+                            , text = editDetails.tempName
+                            , placeholder = Nothing
+                            , label = labelHidden "New Name"
+                            }
+
                     else
-                         button
+                        button
                             []
                             { onPress = Just (toMsg (EditName info.id info.name))
                             , label = text info.name
                             }
+
                 Nothing ->
                     button
                         []
                         { onPress = Just (toMsg (EditName info.id info.name))
                         , label = text info.name
                         }
-            
-                
             ]
         )

@@ -1,6 +1,7 @@
 module FlashGame.FlashHome exposing (Model, Msg, init, update, view)
 
-import Element exposing (alignRight, column, fill, paddingXY, row, text, width)
+import Browser.Dom as Dom exposing (Error, focus)
+import Element exposing (alignRight, column, fill, height, paddingXY, row, spacing, text, width)
 import Element.Input exposing (button)
 import FlashGame.UI.DeckBox as DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
 import Http
@@ -9,6 +10,7 @@ import Json.Encode as Encode
 import List.Extra
 import Session exposing (Session, getHeader)
 import Skeleton
+import Task
 
 
 
@@ -51,6 +53,7 @@ type Msg
     | GotNewDeck (Result Http.Error DeckInfo)
     | DeckBoxMsg DeckBox.Msg
     | Error String
+    | Focus (Result Dom.Error ())
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -104,7 +107,7 @@ update msg model =
         DeckBoxMsg deckBoxMsg ->
             case deckBoxMsg of
                 EditName id newName ->
-                    ( { model | edit = Just { mode = Editing, id = id, tempName = newName } }, Cmd.none )
+                    ( { model | edit = Just { mode = Editing, id = id, tempName = newName } }, Task.attempt Focus (focus "active_deck_edit") )
 
                 EndEdit ->
                     case model.edit of
@@ -148,7 +151,7 @@ view model =
     { title = "FlashHome"
     , attrs = []
     , body =
-        column [ paddingXY 80 8, width fill ]
+        column [ paddingXY 80 8, spacing 15, width fill ]
             (row [ alignRight ]
                 [ button
                     []
