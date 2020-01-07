@@ -1,11 +1,12 @@
 module FlashGame.FlashHome exposing (Model, Msg, init, update, view)
 
-import Json.Encode as Encode
 import Element exposing (alignRight, column, fill, paddingXY, row, text, width)
 import Element.Input exposing (button)
 import FlashGame.UI.DeckBox as DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
 import Http
 import Json.Decode as Decode exposing (field, string)
+import Json.Encode as Encode
+import List.Extra
 import Session exposing (Session, getHeader)
 import Skeleton
 
@@ -25,7 +26,6 @@ type Mode
     = DeckList -- DeckListModel
 
 
-
 type alias Model =
     { session : Session
     , mode : Mode
@@ -37,7 +37,8 @@ type alias Model =
 init : Session -> ( Model, Cmd Msg )
 init session =
     ( { session = session, mode = DeckList, decks = [], edit = Nothing }
-    , loadDecks session )
+    , loadDecks session
+    )
 
 
 
@@ -47,6 +48,7 @@ init session =
 type Msg
     = GotDecks (Result Http.Error (List DeckInfo))
     | GotRenameDeck (Result Http.Error ())
+    | GotNewDeck (Result Http.Error DeckInfo)
     | DeckBoxMsg DeckBox.Msg
     | Error String
 
@@ -60,43 +62,74 @@ update msg model =
                     ( { model | decks = decks }, Cmd.none )
 
                 Err error ->
-                    ( model, Cmd.none ) -- TODO: handle error
+                    ( model, Cmd.none )
 
+        -- TODO: handle error
         GotRenameDeck result ->
             case result of
                 Ok () ->
-                    ( { model |
-                        decks = List.map (
-                            \info ->
+                    ( { model
+                        | decks =
+                            List.map
+                                (\info ->
                                     case model.edit of
                                         Just editDetails ->
                                             if info.id == editDetails.id then
-                                                {info | name = editDetails.tempName}
+                                                { info | name = editDetails.tempName }
+
                                             else
                                                 info
+
                                         Nothing ->
                                             info
-                        ) model.decks
+                                )
+                                model.decks
                         , edit = Nothing
-                    }, Cmd.none )
+                      }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    ( model, Cmd.none ) -- TODO: handle error
+                    ( model, Cmd.none )
 
+        GotNewDeck result ->
+            case result of
+                Ok deck ->
+                    ( { model | edit = Nothing, decks = deck :: model.decks }, Cmd.none )
+
+                Err error ->
+                    ( model, Cmd.none )
+
+        -- TODO: handle error
         DeckBoxMsg deckBoxMsg ->
             case deckBoxMsg of
                 EditName id newName ->
-                    ( {model | edit = Just { mode = Editing, id = id, tempName = newName}}, Cmd.none)
-
+                    ( { model | edit = Just { mode = Editing, id = id, tempName = newName } }, Cmd.none )
 
                 EndEdit ->
-                    -- Initiate a name change against the server
                     case model.edit of
                         Just editDetails ->
-                            -- TODO: only do http request if new name doesn't match original
-                            ( {model | edit = Just {editDetails | mode = Uploading}}, renameDeck model.session editDetails)
+                            if editDetails.id == "" then
+                                if editDetails.tempName == "" then
+                                    -- just stop editing
+                                    ( { model | edit = Nothing }, Cmd.none )
+
+                                else
+                                    -- start uploading changes
+                                    ( { model | edit = Just { editDetails | mode = Uploading } }, newDeck model.session editDetails )
+
+                            else
+                                case List.Extra.find (\orig -> orig.id == editDetails.id && orig.name == editDetails.tempName) model.decks of
+                                    Just _ ->
+                                        -- if it hasn't changed, just stop editing
+                                        ( { model | edit = Nothing }, Cmd.none )
+
+                                    Nothing ->
+                                        -- Initiate a name change against the server
+                                        ( { model | edit = Just { editDetails | mode = Uploading } }, renameDeck model.session editDetails )
+
                         Nothing ->
-                            (model, Cmd.none)
+                            ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -116,11 +149,24 @@ view model =
     , attrs = []
     , body =
         column [ paddingXY 80 8, width fill ]
-            (row [ alignRight ] [ button
-                        []
-                        { onPress = Just (DeckBoxMsg (EditName "new" ""))
-                        , label = text "+New Deck"
-                        } ]
+            (row [ alignRight ]
+                [ button
+                    []
+                    { onPress = Just (DeckBoxMsg (EditName "" ""))
+                    , label = text "+New Deck"
+                    }
+                ]
+                :: (case model.edit of
+                        Just editDetails ->
+                            if editDetails.id == "" then
+                                deckBox DeckBoxMsg model.edit { id = "", name = "" }
+
+                            else
+                                text ""
+
+                        Nothing ->
+                            text ""
+                   )
                 :: List.map (deckBox DeckBoxMsg model.edit) model.decks
             )
     }
@@ -142,17 +188,36 @@ loadDecks session =
         , tracker = Nothing
         }
 
+
 renameDeck : Session -> EditDetails -> Cmd Msg
 renameDeck session editDetails =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
         , url = "http://localhost:8080/deck/rename" -- urls should be constants stored somewhere else
-        , body = Http.jsonBody <|
-            Encode.object
-                [("deck_id", Encode.string editDetails.id)
-                ,("name", Encode.string editDetails.tempName)]
+        , body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "deck_id", Encode.string editDetails.id )
+                    , ( "name", Encode.string editDetails.tempName )
+                    ]
         , expect = Http.expectWhatever GotRenameDeck
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+newDeck : Session -> EditDetails -> Cmd Msg
+newDeck session editDetails =
+    Http.request
+        { method = "POST"
+        , headers = [ getHeader session ]
+        , url = "http://localhost:8080/deck/create" -- urls should be constants stored somewhere else
+        , body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "name", Encode.string editDetails.tempName ) ]
+        , expect = Http.expectJson GotNewDeck deckInfodecoder
         , timeout = Nothing
         , tracker = Nothing
         }
