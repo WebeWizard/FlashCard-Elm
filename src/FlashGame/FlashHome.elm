@@ -51,6 +51,7 @@ type Msg
     = GotDecks (Result Http.Error (List DeckInfo))
     | GotRenameDeck (Result Http.Error ())
     | GotNewDeck (Result Http.Error DeckInfo)
+    | GotDelete DeckInfo (Result Http.Error ())
     | DeckBoxMsg DeckBox.Msg
     | Error String
     | Focus (Result Dom.Error ())
@@ -104,6 +105,15 @@ update msg model =
                     ( model, Cmd.none )
 
         -- TODO: handle error
+        GotDelete info result ->
+            case result of
+                Ok () ->
+                    ( { model | decks = List.Extra.remove info model.decks }, Cmd.none )
+
+                Err error ->
+                    ( model, Cmd.none )
+
+        -- TODO: handle error
         DeckBoxMsg deckBoxMsg ->
             case deckBoxMsg of
                 EditName id newName ->
@@ -134,6 +144,9 @@ update msg model =
                         Nothing ->
                             ( model, Cmd.none )
 
+                Delete info ->
+                    ( model, deleteDeck model.session info )
+
                 _ ->
                     ( model, Cmd.none )
 
@@ -151,7 +164,7 @@ view model =
     { title = "FlashHome"
     , attrs = []
     , body =
-        column [ paddingXY 80 8, spacing 15, width fill ]
+        column [ paddingXY 80 8, width fill ]
             (row [ alignRight ]
                 [ button
                     []
@@ -221,6 +234,22 @@ newDeck session editDetails =
                 Encode.object
                     [ ( "name", Encode.string editDetails.tempName ) ]
         , expect = Http.expectJson GotNewDeck deckInfodecoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+deleteDeck : Session -> DeckInfo -> Cmd Msg
+deleteDeck session info =
+    Http.request
+        { method = "POST"
+        , headers = [ getHeader session ]
+        , url = "http://localhost:8080/deck/delete" -- urls should be constants stored somewhere else
+        , body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "deck_id", Encode.string info.id ) ]
+        , expect = Http.expectWhatever (GotDelete info)
         , timeout = Nothing
         , tracker = Nothing
         }

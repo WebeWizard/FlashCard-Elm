@@ -5,7 +5,7 @@
 
 module FlashGame.UI.DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
 
-import Element exposing (Element, el, htmlAttribute, paddingXY, rgb255, row, spacing, text)
+import Element exposing (Element, alignRight, el, fill, htmlAttribute, paddingXY, rgb255, row, spacing, text, width)
 import Element.Border as Border
 import Element.Events exposing (onLoseFocus)
 import Element.Input as Input exposing (button, labelHidden)
@@ -31,12 +31,13 @@ type Msg
     = EditName String String -- Edit id curName
     | EndEdit
     | Start String
+    | Delete DeckInfo
 
 
 deckBox : (Msg -> msg) -> Maybe EditDetails -> DeckInfo -> Element msg
 deckBox toMsg edit info =
-    el [ Border.width 1, Border.color (rgb255 0 0 0), Border.rounded 3, paddingXY 10 10 ]
-        (row []
+    el [ Border.widthEach { bottom = 0, left = 0, right = 0, top = 1 }, Border.color (rgb255 0 0 0), Border.rounded 3, paddingXY 10 10, width fill ]
+        (row [ width fill ]
             [ case edit of
                 Just editDetails ->
                     -- TODO: if in "uploading" mode, then don't allow more edits. show status?
@@ -64,5 +65,10 @@ deckBox toMsg edit info =
                         { onPress = Just (toMsg (EditName info.id info.name))
                         , label = text info.name
                         }
+            , button
+                [ alignRight ]
+                { onPress = Just (toMsg (Delete info))
+                , label = text "Delete"
+                }
             ]
         )
