@@ -119,7 +119,7 @@ update msg model =
                 EditName id newName ->
                     ( { model | edit = Just { mode = Editing, id = id, tempName = newName } }, Task.attempt Focus (focus "active_deck_edit") )
 
-                EndEdit ->
+                EndName ->
                     case model.edit of
                         Just editDetails ->
                             if editDetails.id == "" then

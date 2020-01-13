@@ -5,7 +5,7 @@
 
 module FlashGame.UI.DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
 
-import Element exposing (Element, alignRight, el, fill, htmlAttribute, paddingXY, rgb255, row, spacing, text, width)
+import Element exposing (Element, alignRight, el, fill, htmlAttribute, link, paddingXY, rgb255, row, spacing, text, width)
 import Element.Border as Border
 import Element.Events exposing (onLoseFocus)
 import Element.Input as Input exposing (button, labelHidden)
@@ -29,7 +29,7 @@ type alias EditDetails =
 
 type Msg
     = EditName String String -- Edit id curName
-    | EndEdit
+    | EndName -- Ends renaming
     | Start String
     | Delete DeckInfo
 
@@ -44,7 +44,7 @@ deckBox toMsg edit info =
                     if info.id == editDetails.id then
                         Input.text
                             [ htmlAttribute (Attr.id "active_deck_edit")
-                            , onLoseFocus (toMsg EndEdit)
+                            , onLoseFocus (toMsg EndName)
                             ]
                             { onChange = \name -> toMsg (EditName info.id name)
                             , text = editDetails.tempName
@@ -65,6 +65,11 @@ deckBox toMsg edit info =
                         { onPress = Just (toMsg (EditName info.id info.name))
                         , label = text info.name
                         }
+            , link
+                [ alignRight ]
+                { url = "/flash/deck/edit/" ++ info.id
+                , label = text "Edit"
+                }
             , button
                 [ alignRight ]
                 { onPress = Just (toMsg (Delete info))

@@ -5,9 +5,11 @@ port module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
+import Flags
+import FlashGame.DeckEditor as DeckEditor exposing (Model)
 import FlashGame.FlashHome as FlashHome exposing (Model)
 import Http
-import Json.Decode exposing (Value, decodeValue, nullable)
+import Json.Decode exposing (Decoder, Value, decodeValue, nullable)
 import Json.Encode as Encode
 import Pages.Landing as Landing exposing (Model)
 import Pages.Login as Login exposing (Model)
@@ -19,7 +21,7 @@ import Platform.Cmd exposing (batch)
 import Session exposing (Session)
 import Skeleton
 import Url
-import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string, top)
+import Url.Parser as Parser exposing ((</>), Parser, int, oneOf, s, string, top)
 
 
 
@@ -55,22 +57,32 @@ type Page
     | Login Login.Model
     | Settings Settings.Model
     | Verify Verify.Model
+      -- flashcard game
     | FlashHome FlashHome.Model -- view existing decks, create new decks
+    | DeckEditor DeckEditor.Model -- edit cards within a deck
 
 
+init : Value -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init flagJson url key =
+    let
+        flagsResult =
+            decodeValue Flags.decoder flagJson
+    in
+    case flagsResult of
+        Ok flags ->
+            stepUrl url
+                { key = key
+                , page = NotFound
+                , session = flags.session
+                }
 
--- | DeckEditor DeckEditor.Model -- rename deck, create/update/delete cards
--- | FlashGame FlashGame.Model -- view one card at a time, toggle question or answer visible, rate how well you know card.
--- INIT
-
-
-init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
-    stepUrl url
-        { key = key
-        , page = NotFound
-        , session = Nothing
-        }
+        Err _ ->
+            -- TODO: handle error
+            stepUrl url
+                { key = key
+                , page = NotFound
+                , session = Nothing
+                }
 
 
 
@@ -78,8 +90,7 @@ init _ url key =
 
 
 type Msg
-    = FlashHomeMsg FlashHome.Msg
-    | LandingMsg Landing.Msg
+    = LandingMsg Landing.Msg
     | LinkClicked Browser.UrlRequest
     | LoginMsg Login.Msg
     | GotLogout (Result Http.Error ())
@@ -89,6 +100,9 @@ type Msg
     | UrlChanged Url.Url
     | SessionChanged Value
     | SkelMsg Skeleton.Msg
+      -- flashcard game
+    | FlashHomeMsg FlashHome.Msg
+    | DeckEditorMsg DeckEditor.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -205,9 +219,6 @@ view model =
                 , body = Problem.notFound
                 }
 
-        FlashHome pageModel ->
-            viewPage FlashHomeMsg (FlashHome.view pageModel)
-
         Landing pageModel ->
             viewPage LandingMsg (Landing.view pageModel)
 
@@ -219,6 +230,13 @@ view model =
 
         Verify pageModel ->
             viewPage VerifyMsg (Verify.view pageModel)
+
+        -- flashcard game
+        FlashHome pageModel ->
+            viewPage FlashHomeMsg (FlashHome.view pageModel)
+
+        DeckEditor pageModel ->
+            viewPage DeckEditorMsg (DeckEditor.view pageModel)
 
         _ ->
             -- TODO: implement the rest
@@ -242,7 +260,7 @@ route parser handler =
 stepUrl : Url.Url -> Model -> ( Model, Cmd Msg )
 stepUrl url model =
     let
-        session =
+        maybeSession =
             model.session
 
         parser =
@@ -257,12 +275,22 @@ stepUrl url model =
                     (stepVerify model Verify.init)
                 , route (s "flash")
                     -- if no session present, show login
-                    (case session of
-                        Just hasSession ->
-                            stepFlashHome model (FlashHome.init hasSession)
+                    (case maybeSession of
+                        Just session ->
+                            stepFlashHome model (FlashHome.init session)
 
                         Nothing ->
                             stepLogin model Login.init
+                    )
+                , route (s "flash" </> s "deck" </> s "edit" </> string)
+                    -- if no session present, show login
+                    (\deckId ->
+                        case maybeSession of
+                            Just session ->
+                                stepDeckEditor model (DeckEditor.init session deckId)
+
+                            Nothing ->
+                                stepLogin model Login.init
                     )
                 ]
     in
@@ -278,13 +306,6 @@ stepLanding : Model -> ( Landing.Model, Cmd Landing.Msg ) -> ( Model, Cmd Msg )
 stepLanding mainModel ( pageModel, cmds ) =
     ( { mainModel | page = Landing pageModel }
     , Cmd.map LandingMsg cmds
-    )
-
-
-stepFlashHome : Model -> ( FlashHome.Model, Cmd FlashHome.Msg ) -> ( Model, Cmd Msg )
-stepFlashHome mainModel ( pageModel, cmds ) =
-    ( { mainModel | page = FlashHome pageModel }
-    , Cmd.map FlashHomeMsg cmds
     )
 
 
@@ -313,6 +334,20 @@ stepSettings : Model -> ( Settings.Model, Cmd Settings.Msg ) -> ( Model, Cmd Msg
 stepSettings mainModel ( pageModel, cmds ) =
     ( { mainModel | page = Settings pageModel }
     , Cmd.map SettingsMsg cmds
+    )
+
+
+stepFlashHome : Model -> ( FlashHome.Model, Cmd FlashHome.Msg ) -> ( Model, Cmd Msg )
+stepFlashHome mainModel ( pageModel, cmds ) =
+    ( { mainModel | page = FlashHome pageModel }
+    , Cmd.map FlashHomeMsg cmds
+    )
+
+
+stepDeckEditor : Model -> ( DeckEditor.Model, Cmd DeckEditor.Msg ) -> ( Model, Cmd Msg )
+stepDeckEditor mainModel ( pageModel, cmds ) =
+    ( { mainModel | page = DeckEditor pageModel }
+    , Cmd.map DeckEditorMsg cmds
     )
 
 
