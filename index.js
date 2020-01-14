@@ -1,11 +1,13 @@
 import { Elm } from './src/Main.elm'
 import Constants from './constants.js'
 
+var existingSession = JSON.parse(localStorage.getItem(Constants.storageKeys.session))
+
 var flags = {
   // TODO: split constants into multiple parts with defined shapes
   // so they can be decoded inside of elm
   //"constants": Constants,
-  "session": JSON.parse(localStorage.getItem(Constants.storageKeys.session))
+  "session": existingSession
 }
 
 var app = Elm.Main.init({
@@ -31,10 +33,4 @@ window.addEventListener("storage", function (event) {
     }
   }
 }, false)
-
-// Resume session if available
-var session = localStorage.getItem(Constants.storageKeys.session);
-if (session) {
-  app.ports.updateSession.send(JSON.parse(session));
-}
 
