@@ -10,6 +10,23 @@ type alias Card =
     , pos : Int
     }
 
+type EditMode
+    = EditQuestion
+    | EditAnswer
+    | Uploading
+
+
+type alias EditDetails =
+    { mode : EditMode, id : String, tempValue : String }
+
+
+type Msg
+    = Edit String String
+    | End
+    | Start String
+    | Delete Card
+
+
 
 cardDecoder : Decode.Decoder Card
 cardDecoder =
