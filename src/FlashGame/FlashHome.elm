@@ -53,8 +53,11 @@ type Msg
     | GotNewDeck (Result Http.Error DeckInfo)
     | GotDelete DeckInfo (Result Http.Error ())
     | DeckBoxMsg DeckBox.Msg
-    | Error String
     | Focus (Result Dom.Error ())
+
+
+
+-- TODO: handle errors
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -128,7 +131,7 @@ update msg model =
                                     ( { model | edit = Nothing }, Cmd.none )
 
                                 else
-                                    -- start uploading changes
+                                    -- start uploading new deck
                                     ( { model | edit = Just { editDetails | mode = Uploading } }, newDeck model.session editDetails )
 
                             else
