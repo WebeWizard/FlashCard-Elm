@@ -1,6 +1,7 @@
 module FlashGame.DeckEditor exposing (..)
 
 import Browser.Dom as Dom exposing (Error, focus)
+import FlashGame.UI.DeckBox exposing (DeckInfo, deckInfoDecoder)
 import Element exposing (alignRight, column, fill, height, paddingXY, row, spacing, text, width)
 import Element.Input exposing (button)
 import FlashGame.UI.CardBox as CardBox exposing (Card, EditDetails, EditMode, Msg, cardBox, cardDecoder)
@@ -18,8 +19,7 @@ import Task
 
 
 type alias Deck =
-    { deckId : String
-    , name : String
+    { info : DeckInfo
     , cards : List Card
     }
 
@@ -27,8 +27,7 @@ type alias Deck =
 deckDecoder : Decode.Decoder Deck
 deckDecoder =
     Decode.map3 Deck
-        (field "id" string)
-        (field "name" string)
+        (field "info" (Decode.decodeValue deckInfoDecoder)
         (field "cards" (Decode.list cardDecoder))
 
 

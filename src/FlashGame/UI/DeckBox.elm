@@ -10,6 +10,7 @@ import Element.Border as Border
 import Element.Events exposing (onLoseFocus)
 import Element.Input as Input exposing (button, labelHidden)
 import Html.Attributes as Attr
+import Json.Decode as Decode exposing (field, string)
 
 
 type alias DeckInfo =
@@ -17,6 +18,12 @@ type alias DeckInfo =
     , name : String
     }
 
+
+deckInfoDecoder : Decode.Decoder DeckInfo
+deckInfoDecoder =
+    Decode.map2 DeckInfo
+        (field "id" string)
+        (field "name" string)
 
 type EditMode
     = Editing

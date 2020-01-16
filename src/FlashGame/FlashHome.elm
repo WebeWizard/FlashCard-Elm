@@ -3,9 +3,8 @@ module FlashGame.FlashHome exposing (Model, Msg, init, update, view)
 import Browser.Dom as Dom exposing (Error, focus)
 import Element exposing (alignRight, column, fill, height, paddingXY, row, spacing, text, width)
 import Element.Input exposing (button)
-import FlashGame.UI.DeckBox as DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
+import FlashGame.UI.DeckBox as DeckBox exposing (deckInfoDecoder, DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
 import Http
-import Json.Decode as Decode exposing (field, string)
 import Json.Encode as Encode
 import List.Extra
 import Session exposing (Session, getHeader)
@@ -17,11 +16,6 @@ import Task
 -- MODEL
 
 
-deckInfodecoder : Decode.Decoder DeckInfo
-deckInfodecoder =
-    Decode.map2 DeckInfo
-        (field "id" string)
-        (field "name" string)
 
 
 type Mode
@@ -202,7 +196,7 @@ loadDecks session =
         , headers = [ getHeader session ]
         , url = "http://localhost:8080/decks" -- urls should be constants stored somewhere else
         , body = Http.emptyBody
-        , expect = Http.expectJson GotDecks (Decode.list deckInfodecoder)
+        , expect = Http.expectJson GotDecks (Decode.list deckInfoDecoder)
         , timeout = Nothing
         , tracker = Nothing
         }
