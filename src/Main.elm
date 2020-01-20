@@ -197,6 +197,14 @@ update message model =
                 _ ->
                     ( model, Cmd.none )
 
+        DeckEditorMsg msg ->
+            case model.page of
+                DeckEditor pageModel ->
+                    stepDeckEditor model (DeckEditor.update msg pageModel)
+
+                _ ->
+                    ( model, Cmd.none )
+
         _ ->
             ( model, Cmd.none )
 

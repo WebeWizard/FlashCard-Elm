@@ -1,12 +1,12 @@
 module FlashGame.DeckEditor exposing (..)
 
 import Browser.Dom as Dom exposing (Error, focus)
-import FlashGame.UI.DeckBox exposing (DeckInfo, deckInfoDecoder)
 import Element exposing (alignRight, column, fill, height, paddingXY, row, spacing, text, width)
 import Element.Input exposing (button)
-import FlashGame.UI.CardBox as CardBox exposing (Card, EditDetails, EditMode, Msg, cardBox, cardDecoder)
+import FlashGame.UI.CardBox as CardBox exposing (Card, EditDetails, EditMode, Msg, cardBox, cardDecoder, cardEncoder)
+import FlashGame.UI.DeckBox exposing (DeckInfo, deckInfoDecoder)
 import Http
-import Json.Decode as Decode exposing (field, string)
+import Json.Decode as Decode exposing (decodeValue, field, list, string)
 import Json.Encode as Encode
 import List.Extra
 import Session exposing (Session, getHeader)
@@ -26,8 +26,8 @@ type alias Deck =
 
 deckDecoder : Decode.Decoder Deck
 deckDecoder =
-    Decode.map3 Deck
-        (field "info" (Decode.decodeValue deckInfoDecoder)
+    Decode.map2 Deck
+        (field "info" deckInfoDecoder)
         (field "cards" (Decode.list cardDecoder))
 
 
@@ -99,13 +99,13 @@ update msg model =
             case model.deck of
                 Just deck ->
                     case cardBoxMsg of
-                        CardBox.Edit id mode value ->
-                            ( { model | edit = Just { id = id, mode = mode, tempValue = value } }, Task.attempt Focus (focus "active_card_edit") )
+                        CardBox.Edit mode value ->
+                            ( { model | edit = Just { mode = mode, value = value } }, Task.attempt Focus (focus "active_card_edit") )
 
                         CardBox.End ->
                             case model.edit of
                                 Just editDetails ->
-                                    if editDetails.id == "" then
+                                    if editDetails.value.question == "" && editDetails.value.answer == "" then
                                         -- just stop editing
                                         ( { model | edit = Nothing }, Cmd.none )
 
@@ -140,14 +140,14 @@ view model =
             (row [ alignRight ]
                 [ button
                     []
-                    { onPress = Just (CardBoxMsg (CardBox.Edit "" CardBox.Question ""))
+                    { onPress = Just (CardBoxMsg (CardBox.Edit CardBox.Question { id = "", deckId = model.deckId, question = "", answer = "", pos = -1 }))
                     , label = text "+New Card"
                     }
                 ]
                 :: (case model.edit of
                         Just editDetails ->
-                            if editDetails.id == "" then
-                                cardBox CardBoxMsg model.edit { id = "", question = "", answer = "", pos = -1 }
+                            if editDetails.value.id == "" then
+                                cardBox CardBoxMsg model.edit editDetails.value
 
                             else
                                 text ""
@@ -188,11 +188,10 @@ newCard session editDetails =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/deck/create" -- urls should be constants stored somewhere else
+        , url = "http://localhost:8080/card/create" -- urls should be constants stored somewhere else
         , body =
             Http.jsonBody <|
-                Encode.object
-                    [ ( "name", Encode.string editDetails.tempValue ) ]
+                cardEncoder editDetails.value
         , expect = Http.expectJson GotNewCard cardDecoder
         , timeout = Nothing
         , tracker = Nothing

@@ -3,8 +3,9 @@ module FlashGame.FlashHome exposing (Model, Msg, init, update, view)
 import Browser.Dom as Dom exposing (Error, focus)
 import Element exposing (alignRight, column, fill, height, paddingXY, row, spacing, text, width)
 import Element.Input exposing (button)
-import FlashGame.UI.DeckBox as DeckBox exposing (deckInfoDecoder, DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox)
+import FlashGame.UI.DeckBox as DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox, deckInfoDecoder)
 import Http
+import Json.Decode as Decode exposing (decodeValue, field, list, string)
 import Json.Encode as Encode
 import List.Extra
 import Session exposing (Session, getHeader)
@@ -14,8 +15,6 @@ import Task
 
 
 -- MODEL
-
-
 
 
 type Mode
@@ -230,7 +229,7 @@ newDeck session editDetails =
             Http.jsonBody <|
                 Encode.object
                     [ ( "name", Encode.string editDetails.tempName ) ]
-        , expect = Http.expectJson GotNewDeck deckInfodecoder
+        , expect = Http.expectJson GotNewDeck deckInfoDecoder
         , timeout = Nothing
         , tracker = Nothing
         }
