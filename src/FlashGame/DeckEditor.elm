@@ -91,7 +91,9 @@ update msg model =
                             ( { model
                                 | deck = Just { deck | cards = List.Extra.updateIf (\card -> card.id == info.id) (\card -> info) deck.cards }
                                 , edit = Nothing -- TODO: only set to nothing if info and mode match current edit details
-                            }, Cmd.none )
+                              }
+                            , Cmd.none
+                            )
 
                         Err error ->
                             ( model, Cmd.none )
@@ -124,7 +126,6 @@ update msg model =
                             case model.edit of
                                 Just editDetails ->
                                     if editDetails.value.id == "" then
-
                                         if editDetails.value.question == "" && editDetails.value.answer == "" then
                                             -- just stop editing
                                             ( { model | edit = Nothing }, Cmd.none )
@@ -132,17 +133,21 @@ update msg model =
                                         else
                                             -- start uploading new card
                                             ( { model | edit = Just { editDetails | mode = CardBox.Uploading } }, newCard model.session editDetails )
+
                                     else
                                         case List.Extra.find (\orig -> orig.id == editDetails.value.id) deck.cards of
                                             Just origCard ->
-                                                if (editDetails.value.question /= origCard.question) || (editDetails.value.answer /= origCard.answer) then
+                                                if editDetails.value /= origCard then
                                                     ( { model | edit = Just { editDetails | mode = CardBox.Uploading } }, updateCard model.session editDetails )
+
                                                 else
                                                     -- just stop editing
                                                     ( { model | edit = Nothing }, Cmd.none )
+
                                             Nothing ->
                                                 -- just stop editing
                                                 ( { model | edit = Nothing }, Cmd.none )
+
                                 Nothing ->
                                     ( model, Cmd.none )
 
@@ -188,6 +193,7 @@ view model =
                 :: (case model.deck of
                         Just deck ->
                             List.map (cardBox CardBoxMsg model.edit) deck.cards
+
                         Nothing ->
                             []
                    )
@@ -225,6 +231,7 @@ newCard session editDetails =
         , timeout = Nothing
         , tracker = Nothing
         }
+
 
 updateCard : Session -> EditDetails -> Cmd Msg
 updateCard session editDetails =

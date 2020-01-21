@@ -5,7 +5,7 @@
 
 module FlashGame.UI.DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox, deckInfoDecoder)
 
-import Element exposing (Element, spacing, alignRight, el, fill, htmlAttribute, link, paddingXY, rgb255, row, spacing, text, width)
+import Element exposing (Element, alignRight, el, fill, htmlAttribute, link, paddingXY, rgb255, row, spacing, text, width)
 import Element.Border as Border
 import Element.Events exposing (onLoseFocus)
 import Element.Input as Input exposing (button, labelHidden)

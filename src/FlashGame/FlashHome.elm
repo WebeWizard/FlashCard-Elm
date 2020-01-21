@@ -84,7 +84,7 @@ update msg model =
                                             info
                                 )
                                 model.decks
-                        , edit = Nothing
+                        , edit = Nothing -- TODO: only set to nothing if info *and mode* match current edit details
                       }
                     , Cmd.none
                     )
