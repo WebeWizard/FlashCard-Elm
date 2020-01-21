@@ -5,7 +5,7 @@
 
 module FlashGame.UI.DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox, deckInfoDecoder)
 
-import Element exposing (Element, alignRight, el, fill, htmlAttribute, link, paddingXY, rgb255, row, spacing, text, width)
+import Element exposing (Element, spacing, alignRight, el, fill, htmlAttribute, link, paddingXY, rgb255, row, spacing, text, width)
 import Element.Border as Border
 import Element.Events exposing (onLoseFocus)
 import Element.Input as Input exposing (button, labelHidden)
@@ -45,7 +45,7 @@ type Msg
 deckBox : (Msg -> msg) -> Maybe EditDetails -> DeckInfo -> Element msg
 deckBox toMsg edit info =
     el [ Border.widthEach { bottom = 0, left = 0, right = 0, top = 1 }, Border.color (rgb255 0 0 0), Border.rounded 3, paddingXY 10 10, width fill ]
-        (row [ width fill ]
+        (row [ width fill, spacing 10 ]
             [ case edit of
                 Just editDetails ->
                     -- TODO: if in "uploading" mode, then don't allow more edits. show status?

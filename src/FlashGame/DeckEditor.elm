@@ -53,6 +53,7 @@ type Msg
     = GotDeck (Result Http.Error Deck)
     | CardBoxMsg CardBox.Msg
     | GotNewCard (Result Http.Error Card)
+    | GotUpdateCard Card (Result Http.Error ())
     | GotDelete Card (Result Http.Error ())
     | Focus (Result Dom.Error ())
 
@@ -82,6 +83,22 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
+        GotUpdateCard info result ->
+            case model.deck of
+                Just deck ->
+                    case result of
+                        Ok () ->
+                            ( { model
+                                | deck = Just { deck | cards = List.Extra.updateIf (\card -> card.id == info.id) (\card -> info) deck.cards }
+                                , edit = Nothing -- TODO: only set to nothing if info and mode match current edit details
+                            }, Cmd.none )
+
+                        Err error ->
+                            ( model, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
         GotDelete info result ->
             case model.deck of
                 Just deck ->
@@ -100,19 +117,32 @@ update msg model =
                 Just deck ->
                     case cardBoxMsg of
                         CardBox.Edit mode value ->
+                            -- TODO only focus if this is the first Edit detected (just clicked on button)
                             ( { model | edit = Just { mode = mode, value = value } }, Task.attempt Focus (focus "active_card_edit") )
 
                         CardBox.End ->
                             case model.edit of
                                 Just editDetails ->
-                                    if editDetails.value.question == "" && editDetails.value.answer == "" then
-                                        -- just stop editing
-                                        ( { model | edit = Nothing }, Cmd.none )
+                                    if editDetails.value.id == "" then
 
+                                        if editDetails.value.question == "" && editDetails.value.answer == "" then
+                                            -- just stop editing
+                                            ( { model | edit = Nothing }, Cmd.none )
+
+                                        else
+                                            -- start uploading new card
+                                            ( { model | edit = Just { editDetails | mode = CardBox.Uploading } }, newCard model.session editDetails )
                                     else
-                                        -- start uploading new card
-                                        ( { model | edit = Just { editDetails | mode = CardBox.Uploading } }, newCard model.session editDetails )
-
+                                        case List.Extra.find (\orig -> orig.id == editDetails.value.id) deck.cards of
+                                            Just origCard ->
+                                                if (editDetails.value.question /= origCard.question) || (editDetails.value.answer /= origCard.answer) then
+                                                    ( { model | edit = Just { editDetails | mode = CardBox.Uploading } }, updateCard model.session editDetails )
+                                                else
+                                                    -- just stop editing
+                                                    ( { model | edit = Nothing }, Cmd.none )
+                                            Nothing ->
+                                                -- just stop editing
+                                                ( { model | edit = Nothing }, Cmd.none )
                                 Nothing ->
                                     ( model, Cmd.none )
 
@@ -140,7 +170,7 @@ view model =
             (row [ alignRight ]
                 [ button
                     []
-                    { onPress = Just (CardBoxMsg (CardBox.Edit CardBox.Question { id = "", deckId = model.deckId, question = "", answer = "", pos = -1 }))
+                    { onPress = Just (CardBoxMsg (CardBox.Edit CardBox.Question { id = "", deckId = model.deckId, question = "", answer = "", pos = 0 }))
                     , label = text "+New Card"
                     }
                 ]
@@ -158,7 +188,6 @@ view model =
                 :: (case model.deck of
                         Just deck ->
                             List.map (cardBox CardBoxMsg model.edit) deck.cards
-
                         Nothing ->
                             []
                    )
@@ -197,17 +226,31 @@ newCard session editDetails =
         , tracker = Nothing
         }
 
+updateCard : Session -> EditDetails -> Cmd Msg
+updateCard session editDetails =
+    Http.request
+        { method = "POST"
+        , headers = [ getHeader session ]
+        , url = "http://localhost:8080/card/update" -- urls should be constants stored somewhere else
+        , body =
+            Http.jsonBody <|
+                cardEncoder editDetails.value
+        , expect = Http.expectWhatever (GotUpdateCard editDetails.value)
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
 
 deleteCard : Session -> Card -> Cmd Msg
 deleteCard session info =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/deck/delete" -- urls should be constants stored somewhere else
+        , url = "http://localhost:8080/card/delete" -- urls should be constants stored somewhere else
         , body =
             Http.jsonBody <|
                 Encode.object
-                    [ ( "deck_id", Encode.string info.id ) ]
+                    [ ( "card_id", Encode.string info.id ) ]
         , expect = Http.expectWhatever (GotDelete info)
         , timeout = Nothing
         , tracker = Nothing
