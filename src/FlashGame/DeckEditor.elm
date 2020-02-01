@@ -175,7 +175,8 @@ view model =
             (row [ alignRight ]
                 [ button
                     []
-                    { onPress = Just (CardBoxMsg (CardBox.Edit CardBox.Question { id = "", deckId = model.deckId, question = "", answer = "", pos = 0 }))
+                    -- TODO: get very last card position to use as default
+                    { onPress = Just (CardBoxMsg (CardBox.Edit CardBox.Question { id = "", deckId = model.deckId, question = "", answer = "", pos = 1 }))
                     , label = text "+New Card"
                     }
                 ]
