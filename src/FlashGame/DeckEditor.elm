@@ -1,7 +1,7 @@
 module FlashGame.DeckEditor exposing (..)
 
 import Browser.Dom as Dom exposing (Error, focus)
-import Element exposing (alignRight, column, fill, height, paddingXY, row, spacing, text, width)
+import Element exposing (scrollbarY, alignRight, column, fill, height, paddingXY, row, spacing, text, width)
 import Element.Input exposing (button)
 import FlashGame.UI.CardBox as CardBox exposing (Card, EditDetails, EditMode, Msg, cardBox, cardDecoder, cardEncoder)
 import FlashGame.UI.DeckBox exposing (DeckInfo, deckInfoDecoder)
@@ -54,6 +54,7 @@ type Msg
     | CardBoxMsg CardBox.Msg
     | GotNewCard (Result Http.Error Card)
     | GotUpdateCard Card (Result Http.Error ())
+    | GotUpdatePos Card (Result Http.Error ())
     | GotDelete Card (Result Http.Error ())
     | Focus (Result Dom.Error ())
 
@@ -101,6 +102,45 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
+        GotUpdatePos info result ->
+            case model.deck of
+                Just deck ->
+                    case result of
+                        Ok () ->
+                            -- correct all of the card positions
+                            ( { model
+                                | deck =
+                                    Just { deck |
+                                        cards = (case List.Extra.find (\orig -> orig.id == info.id) deck.cards of
+                                            Just origCard ->
+                                                if origCard.pos > info.pos then -- position decreased
+                                                    (List.Extra.updateIf
+                                                        (\card -> card.pos >= info.pos && card.pos <= origCard.pos)
+                                                        (\card -> {card| pos = card.pos + 1})
+                                                        deck.cards
+                                                    ) |> List.Extra.updateIf (\card -> card.id == info.id) (\card -> info)
+                                                else
+                                                    (List.Extra.updateIf -- position increased
+                                                        (\card -> card.pos <= info.pos && card.pos >= origCard.pos)
+                                                        (\card -> {card | pos = card.pos - 1})
+                                                        deck.cards
+                                                    ) |> List.Extra.updateIf (\card -> card.id == info.id) (\card -> info)
+                                                
+                                            Nothing ->
+                                                deck.cards
+                                        )
+                                    }
+                                , edit = Nothing -- TODO: only set to nothing if info and mode match current edit details
+                            }
+                                , Cmd.none
+                                )
+
+                        Err error ->
+                            ( model, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
         GotDelete info result ->
             case model.deck of
                 Just deck ->
@@ -137,7 +177,10 @@ update msg model =
                                     else
                                         case List.Extra.find (\orig -> orig.id == editDetails.value.id) deck.cards of
                                             Just origCard ->
-                                                if editDetails.value /= origCard then
+                                                if editDetails.value.pos /= origCard.pos then
+                                                    ( { model | edit = Just { editDetails | mode = CardBox.Uploading } }, updatePos model.session editDetails origCard )
+
+                                                else if editDetails.value /= origCard then
                                                     ( { model | edit = Just { editDetails | mode = CardBox.Uploading } }, updateCard model.session editDetails )
 
                                                 else
@@ -166,17 +209,44 @@ update msg model =
 -- VIEW
 
 
+getNextPos : List Card -> Int
+getNextPos cardList =
+    case List.Extra.maximumBy (\card -> card.pos) cardList of
+        Just lastCard ->
+            lastCard.pos + 1
+
+        Nothing ->
+            1
+
+
 view : Model -> Skeleton.Details Msg
 view model =
     { title = "Deck Editor"
     , attrs = []
     , body =
-        column [ paddingXY 80 8, width fill ]
+        column [ paddingXY 80 8, width fill, scrollbarY ]
             (row [ alignRight ]
                 [ button
                     []
                     -- TODO: get very last card position to use as default
-                    { onPress = Just (CardBoxMsg (CardBox.Edit CardBox.Question { id = "", deckId = model.deckId, question = "", answer = "", pos = 1 }))
+                    { onPress =
+                        Just
+                            (CardBoxMsg
+                                (CardBox.Edit CardBox.Question
+                                    { id = ""
+                                    , deckId = model.deckId
+                                    , question = ""
+                                    , answer = ""
+                                    , pos =
+                                        case model.deck of
+                                            Just deck ->
+                                                getNextPos deck.cards
+
+                                            Nothing ->
+                                                1
+                                    }
+                                )
+                            )
                     , label = text "+New Card"
                     }
                 ]
@@ -244,6 +314,26 @@ updateCard session editDetails =
             Http.jsonBody <|
                 cardEncoder editDetails.value
         , expect = Http.expectWhatever (GotUpdateCard editDetails.value)
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+updatePos : Session -> EditDetails -> Card -> Cmd Msg
+updatePos session editDetails origCard =
+    Http.request
+        { method = "POST"
+        , headers = [ getHeader session ]
+        , url = "http://localhost:8080/card/updatepos" -- urls should be constants stored somewhere else
+        , body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "id", Encode.string origCard.id )
+                    , ( "deck_id", Encode.string origCard.deckId )
+                    , ( "orig_pos", Encode.int origCard.pos )
+                    , ( "new_pos", Encode.int editDetails.value.pos )
+                    ]
+        , expect = Http.expectWhatever (GotUpdatePos editDetails.value)
         , timeout = Nothing
         , tracker = Nothing
         }
