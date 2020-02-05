@@ -3,7 +3,7 @@ module FlashGame.FlashHome exposing (Model, Msg, init, update, view)
 import Browser.Dom as Dom exposing (Error, focus)
 import Element exposing (alignRight, column, fill, height, paddingXY, row, scrollbarY, spacing, text, width)
 import Element.Input exposing (button)
-import FlashGame.UI.DeckBox as DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox, deckInfoDecoder)
+import FlashGame.UI.DeckEditRow as DeckEditRow exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox, deckInfoDecoder)
 import Http
 import Json.Decode as Decode exposing (decodeValue, field, list, string)
 import Json.Encode as Encode
@@ -45,7 +45,7 @@ type Msg
     | GotRenameDeck (Result Http.Error ())
     | GotNewDeck (Result Http.Error DeckInfo)
     | GotDelete DeckInfo (Result Http.Error ())
-    | DeckBoxMsg DeckBox.Msg
+    | DeckEditRowMsg DeckEditRow.Msg
     | Focus (Result Dom.Error ())
 
 
@@ -110,7 +110,7 @@ update msg model =
                     ( model, Cmd.none )
 
         -- TODO: handle error
-        DeckBoxMsg deckBoxMsg ->
+        DeckEditRowMsg deckBoxMsg ->
             case deckBoxMsg of
                 EditName id newName ->
                     ( { model | edit = Just { mode = Editing, id = id, tempName = newName } }, Task.attempt Focus (focus "active_deck_edit") )
@@ -164,14 +164,14 @@ view model =
             (row [ alignRight ]
                 [ button
                     []
-                    { onPress = Just (DeckBoxMsg (EditName "" ""))
+                    { onPress = Just (DeckEditRowMsg (EditName "" ""))
                     , label = text "+New Deck"
                     }
                 ]
                 :: (case model.edit of
                         Just editDetails ->
                             if editDetails.id == "" then
-                                deckBox DeckBoxMsg model.edit { id = "", name = "" }
+                                deckBox DeckEditRowMsg model.edit { id = "", name = "" }
 
                             else
                                 text ""
@@ -179,7 +179,7 @@ view model =
                         Nothing ->
                             text ""
                    )
-                :: List.map (deckBox DeckBoxMsg model.edit) model.decks
+                :: List.map (deckBox DeckEditRowMsg model.edit) model.decks
             )
     }
 

@@ -1,4 +1,4 @@
-module FlashGame.UI.CardBox exposing (..)
+module FlashGame.UI.CardEditRow exposing (..)
 
 import Element exposing (Element, alignRight, el, fill, htmlAttribute, link, paddingXY, px, rgb, rgb255, row, spacing, text, width)
 import Element.Background as Background

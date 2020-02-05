@@ -3,8 +3,8 @@ module FlashGame.DeckEditor exposing (..)
 import Browser.Dom as Dom exposing (Error, focus)
 import Element exposing (alignRight, column, fill, height, paddingXY, row, scrollbarY, spacing, text, width)
 import Element.Input exposing (button)
-import FlashGame.UI.CardBox as CardBox exposing (Card, EditDetails, EditMode, Msg, cardBox, cardDecoder, cardEncoder)
-import FlashGame.UI.DeckBox exposing (DeckInfo, deckInfoDecoder)
+import FlashGame.UI.CardEditRow as CardEditRow exposing (Card, EditDetails, EditMode, Msg, cardBox, cardDecoder, cardEncoder)
+import FlashGame.UI.DeckEditRow exposing (DeckInfo, deckInfoDecoder)
 import Http
 import Json.Decode as Decode exposing (decodeValue, field, list, string)
 import Json.Encode as Encode
@@ -51,7 +51,7 @@ init session deckId =
 
 type Msg
     = GotDeck (Result Http.Error Deck)
-    | CardBoxMsg CardBox.Msg
+    | CardEditRowMsg CardEditRow.Msg
     | GotNewCard (Result Http.Error Card)
     | GotUpdateCard Card (Result Http.Error ())
     | GotUpdatePos Card (Result Http.Error ())
@@ -158,15 +158,15 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
-        CardBoxMsg cardBoxMsg ->
+        CardEditRowMsg cardBoxMsg ->
             case model.deck of
                 Just deck ->
                     case cardBoxMsg of
-                        CardBox.Edit mode value ->
+                        CardEditRow.Edit mode value ->
                             -- TODO only focus if this is the first Edit detected (just clicked on button)
                             ( { model | edit = Just { mode = mode, value = value } }, Task.attempt Focus (focus "active_card_edit") )
 
-                        CardBox.End ->
+                        CardEditRow.End ->
                             case model.edit of
                                 Just editDetails ->
                                     if editDetails.value.id == "" then
@@ -176,16 +176,16 @@ update msg model =
 
                                         else
                                             -- start uploading new card
-                                            ( { model | edit = Just { editDetails | mode = CardBox.Uploading } }, newCard model.session editDetails )
+                                            ( { model | edit = Just { editDetails | mode = CardEditRow.Uploading } }, newCard model.session editDetails )
 
                                     else
                                         case List.Extra.find (\orig -> orig.id == editDetails.value.id) deck.cards of
                                             Just origCard ->
                                                 if editDetails.value.pos /= origCard.pos then
-                                                    ( { model | edit = Just { editDetails | mode = CardBox.Uploading } }, updatePos model.session editDetails origCard )
+                                                    ( { model | edit = Just { editDetails | mode = CardEditRow.Uploading } }, updatePos model.session editDetails origCard )
 
                                                 else if editDetails.value /= origCard then
-                                                    ( { model | edit = Just { editDetails | mode = CardBox.Uploading } }, updateCard model.session editDetails )
+                                                    ( { model | edit = Just { editDetails | mode = CardEditRow.Uploading } }, updateCard model.session editDetails )
 
                                                 else
                                                     -- just stop editing
@@ -198,7 +198,7 @@ update msg model =
                                 Nothing ->
                                     ( model, Cmd.none )
 
-                        CardBox.Delete info ->
+                        CardEditRow.Delete info ->
                             ( model, deleteCard model.session info )
 
                 Nothing ->
@@ -235,8 +235,8 @@ view model =
                     -- TODO: get very last card position to use as default
                     { onPress =
                         Just
-                            (CardBoxMsg
-                                (CardBox.Edit CardBox.Question
+                            (CardEditRowMsg
+                                (CardEditRow.Edit CardEditRow.Question
                                     { id = ""
                                     , deckId = model.deckId
                                     , question = ""
@@ -257,7 +257,7 @@ view model =
                 :: (case model.edit of
                         Just editDetails ->
                             if editDetails.value.id == "" then
-                                cardBox CardBoxMsg model.edit editDetails.value
+                                cardBox CardEditRowMsg model.edit editDetails.value
 
                             else
                                 text ""
@@ -267,7 +267,7 @@ view model =
                    )
                 :: (case model.deck of
                         Just deck ->
-                            List.map (cardBox CardBoxMsg model.edit) deck.cards
+                            List.map (cardBox CardEditRowMsg model.edit) deck.cards
 
                         Nothing ->
                             []
