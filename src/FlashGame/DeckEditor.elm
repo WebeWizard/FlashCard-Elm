@@ -1,7 +1,7 @@
 module FlashGame.DeckEditor exposing (..)
 
 import Browser.Dom as Dom exposing (Error, focus)
-import Element exposing (scrollbarY, alignRight, column, fill, height, paddingXY, row, spacing, text, width)
+import Element exposing (alignRight, column, fill, height, paddingXY, row, scrollbarY, spacing, text, width)
 import Element.Input exposing (button)
 import FlashGame.UI.CardBox as CardBox exposing (Card, EditDetails, EditMode, Msg, cardBox, cardDecoder, cardEncoder)
 import FlashGame.UI.DeckBox exposing (DeckInfo, deckInfoDecoder)
@@ -110,30 +110,34 @@ update msg model =
                             -- correct all of the card positions
                             ( { model
                                 | deck =
-                                    Just { deck |
-                                        cards = (case List.Extra.find (\orig -> orig.id == info.id) deck.cards of
-                                            Just origCard ->
-                                                if origCard.pos > info.pos then -- position decreased
-                                                    (List.Extra.updateIf
-                                                        (\card -> card.pos >= info.pos && card.pos <= origCard.pos)
-                                                        (\card -> {card| pos = card.pos + 1})
+                                    Just
+                                        { deck
+                                            | cards =
+                                                case List.Extra.find (\orig -> orig.id == info.id) deck.cards of
+                                                    Just origCard ->
+                                                        if origCard.pos > info.pos then
+                                                            -- position decreased
+                                                            List.Extra.updateIf
+                                                                (\card -> card.pos >= info.pos && card.pos <= origCard.pos)
+                                                                (\card -> { card | pos = card.pos + 1 })
+                                                                deck.cards
+                                                                |> List.Extra.updateIf (\card -> card.id == info.id) (\card -> info)
+
+                                                        else
+                                                            List.Extra.updateIf
+                                                                -- position increased
+                                                                (\card -> card.pos <= info.pos && card.pos >= origCard.pos)
+                                                                (\card -> { card | pos = card.pos - 1 })
+                                                                deck.cards
+                                                                |> List.Extra.updateIf (\card -> card.id == info.id) (\card -> info)
+
+                                                    Nothing ->
                                                         deck.cards
-                                                    ) |> List.Extra.updateIf (\card -> card.id == info.id) (\card -> info)
-                                                else
-                                                    (List.Extra.updateIf -- position increased
-                                                        (\card -> card.pos <= info.pos && card.pos >= origCard.pos)
-                                                        (\card -> {card | pos = card.pos - 1})
-                                                        deck.cards
-                                                    ) |> List.Extra.updateIf (\card -> card.id == info.id) (\card -> info)
-                                                
-                                            Nothing ->
-                                                deck.cards
-                                        )
-                                    }
+                                        }
                                 , edit = Nothing -- TODO: only set to nothing if info and mode match current edit details
-                            }
-                                , Cmd.none
-                                )
+                              }
+                            , Cmd.none
+                            )
 
                         Err error ->
                             ( model, Cmd.none )

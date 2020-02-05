@@ -8,6 +8,7 @@ import Browser.Navigation as Nav
 import Flags
 import FlashGame.DeckEditor as DeckEditor exposing (Model)
 import FlashGame.FlashHome as FlashHome exposing (Model)
+import FlashGame.Game as Game exposing (Model)
 import Http
 import Json.Decode exposing (Decoder, Value, decodeValue, nullable)
 import Json.Encode as Encode
@@ -60,6 +61,7 @@ type Page
       -- flashcard game
     | FlashHome FlashHome.Model -- view existing decks, create new decks
     | DeckEditor DeckEditor.Model -- edit cards within a deck
+    | Game Game.Model
 
 
 init : Value -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )

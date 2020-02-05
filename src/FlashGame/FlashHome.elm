@@ -1,7 +1,7 @@
 module FlashGame.FlashHome exposing (Model, Msg, init, update, view)
 
 import Browser.Dom as Dom exposing (Error, focus)
-import Element exposing (scrollbarY, alignRight, column, fill, height, paddingXY, row, spacing, text, width)
+import Element exposing (alignRight, column, fill, height, paddingXY, row, scrollbarY, spacing, text, width)
 import Element.Input exposing (button)
 import FlashGame.UI.DeckBox as DeckBox exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox, deckInfoDecoder)
 import Http
