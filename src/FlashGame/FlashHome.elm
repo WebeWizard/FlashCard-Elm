@@ -3,7 +3,7 @@ module FlashGame.FlashHome exposing (Model, Msg, init, update, view)
 import Browser.Dom as Dom exposing (Error, focus)
 import Element exposing (alignRight, column, fill, height, paddingXY, row, scrollbarY, spacing, text, width)
 import Element.Input exposing (button)
-import FlashGame.UI.DeckEditRow as DeckEditRow exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox, deckInfoDecoder)
+import FlashGame.UI.DeckEditRow as DeckEditRow exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckEditRow, deckInfoDecoder)
 import Http
 import Json.Decode as Decode exposing (decodeValue, field, list, string)
 import Json.Encode as Encode
@@ -110,8 +110,8 @@ update msg model =
                     ( model, Cmd.none )
 
         -- TODO: handle error
-        DeckEditRowMsg deckBoxMsg ->
-            case deckBoxMsg of
+        DeckEditRowMsg deckEditRowMsg ->
+            case deckEditRowMsg of
                 EditName id newName ->
                     ( { model | edit = Just { mode = Editing, id = id, tempName = newName } }, Task.attempt Focus (focus "active_deck_edit") )
 
@@ -171,7 +171,7 @@ view model =
                 :: (case model.edit of
                         Just editDetails ->
                             if editDetails.id == "" then
-                                deckBox DeckEditRowMsg model.edit { id = "", name = "" }
+                                deckEditRow DeckEditRowMsg model.edit { id = "", name = "" }
 
                             else
                                 text ""
@@ -179,7 +179,7 @@ view model =
                         Nothing ->
                             text ""
                    )
-                :: List.map (deckBox DeckEditRowMsg model.edit) model.decks
+                :: List.map (deckEditRow DeckEditRowMsg model.edit) model.decks
             )
     }
 

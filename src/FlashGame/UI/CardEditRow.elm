@@ -57,8 +57,8 @@ cardEncoder card =
         ]
 
 
-cardBox : (Msg -> msg) -> Maybe EditDetails -> Card -> Element msg
-cardBox toMsg edit cardInfo =
+cardEditRow : (Msg -> msg) -> Maybe EditDetails -> Card -> Element msg
+cardEditRow toMsg edit cardInfo =
     let
         displayInfo =
             case edit of

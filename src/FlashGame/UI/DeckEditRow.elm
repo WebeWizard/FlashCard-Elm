@@ -3,7 +3,7 @@
 -- Clicking the pencil at the top right should let you edit the deck (manage cards, rename, delete, etc)
 
 
-module FlashGame.UI.DeckEditRow exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckBox, deckInfoDecoder)
+module FlashGame.UI.DeckEditRow exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckEditRow, deckInfoDecoder)
 
 import Element exposing (Element, alignRight, el, fill, htmlAttribute, link, paddingXY, rgb255, row, spacing, text, width)
 import Element.Border as Border
@@ -42,8 +42,8 @@ type Msg
     | Delete DeckInfo
 
 
-deckBox : (Msg -> msg) -> Maybe EditDetails -> DeckInfo -> Element msg
-deckBox toMsg edit info =
+deckEditRow : (Msg -> msg) -> Maybe EditDetails -> DeckInfo -> Element msg
+deckEditRow toMsg edit info =
     el [ Border.widthEach { bottom = 0, left = 0, right = 0, top = 1 }, Border.color (rgb255 0 0 0), Border.rounded 3, paddingXY 10 10, width fill ]
         (row [ width fill, spacing 10 ]
             [ case edit of

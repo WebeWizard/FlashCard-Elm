@@ -3,7 +3,7 @@ module FlashGame.DeckEditor exposing (..)
 import Browser.Dom as Dom exposing (Error, focus)
 import Element exposing (alignRight, column, fill, height, paddingXY, row, scrollbarY, spacing, text, width)
 import Element.Input exposing (button)
-import FlashGame.UI.CardEditRow as CardEditRow exposing (Card, EditDetails, EditMode, Msg, cardBox, cardDecoder, cardEncoder)
+import FlashGame.UI.CardEditRow as CardEditRow exposing (Card, EditDetails, EditMode, Msg, cardDecoder, cardEditRow, cardEncoder)
 import FlashGame.UI.DeckEditRow exposing (DeckInfo, deckInfoDecoder)
 import Http
 import Json.Decode as Decode exposing (decodeValue, field, list, string)
@@ -158,10 +158,10 @@ update msg model =
                 Nothing ->
                     ( model, Cmd.none )
 
-        CardEditRowMsg cardBoxMsg ->
+        CardEditRowMsg cardEditRowMsg ->
             case model.deck of
                 Just deck ->
-                    case cardBoxMsg of
+                    case cardEditRowMsg of
                         CardEditRow.Edit mode value ->
                             -- TODO only focus if this is the first Edit detected (just clicked on button)
                             ( { model | edit = Just { mode = mode, value = value } }, Task.attempt Focus (focus "active_card_edit") )
@@ -257,7 +257,7 @@ view model =
                 :: (case model.edit of
                         Just editDetails ->
                             if editDetails.value.id == "" then
-                                cardBox CardEditRowMsg model.edit editDetails.value
+                                cardEditRow CardEditRowMsg model.edit editDetails.value
 
                             else
                                 text ""
@@ -267,7 +267,7 @@ view model =
                    )
                 :: (case model.deck of
                         Just deck ->
-                            List.map (cardBox CardEditRowMsg model.edit) deck.cards
+                            List.map (cardEditRow CardEditRowMsg model.edit) deck.cards
 
                         Nothing ->
                             []
