@@ -105,6 +105,7 @@ type Msg
       -- flashcard game
     | FlashHomeMsg FlashHome.Msg
     | DeckEditorMsg DeckEditor.Msg
+    | GameMsg Game.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
