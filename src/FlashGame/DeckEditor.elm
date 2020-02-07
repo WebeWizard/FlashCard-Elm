@@ -229,10 +229,9 @@ view model =
     , attrs = []
     , body =
         column [ paddingXY 80 8, width fill, scrollbarY ]
-            (row [ alignRight ]
-                [ button
-                    []
-                    -- TODO: get very last card position to use as default
+            (
+                button
+                    [ alignRight ]
                     { onPress =
                         Just
                             (CardEditRowMsg
@@ -253,7 +252,6 @@ view model =
                             )
                     , label = text "+New Card"
                     }
-                ]
                 :: (case model.edit of
                         Just editDetails ->
                             if editDetails.value.id == "" then
@@ -264,14 +262,14 @@ view model =
 
                         Nothing ->
                             text ""
-                   )
+                    )
                 :: (case model.deck of
                         Just deck ->
                             List.map (cardEditRow CardEditRowMsg model.edit) deck.cards
 
                         Nothing ->
                             []
-                   )
+                    )
             )
     }
 

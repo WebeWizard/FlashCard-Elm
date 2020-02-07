@@ -161,13 +161,13 @@ view model =
     , attrs = []
     , body =
         column [ paddingXY 80 8, width fill, scrollbarY ]
-            (row [ alignRight ]
-                [ button
-                    []
+            (
+                button
+                    [ alignRight ]
                     { onPress = Just (DeckEditRowMsg (EditName "" ""))
                     , label = text "+New Deck"
                     }
-                ]
+                
                 :: (case model.edit of
                         Just editDetails ->
                             if editDetails.id == "" then

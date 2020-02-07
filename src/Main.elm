@@ -192,6 +192,8 @@ update message model =
             -- result probably doesn't matter.
             ( { model | session = Nothing }, Cmd.none )
 
+          -- flashcard game
+
         FlashHomeMsg msg ->
             case model.page of
                 FlashHome pageModel ->
@@ -204,6 +206,14 @@ update message model =
             case model.page of
                 DeckEditor pageModel ->
                     stepDeckEditor model (DeckEditor.update msg pageModel)
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GameMsg msg ->
+            case model.page of
+                Game pageModel ->
+                    stepGame model (Game.update msg pageModel)
 
                 _ ->
                     ( model, Cmd.none )
@@ -248,6 +258,9 @@ view model =
 
         DeckEditor pageModel ->
             viewPage DeckEditorMsg (DeckEditor.view pageModel)
+
+        Game pageModel ->
+            viewPage GameMsg (Game.view pageModel)
 
         _ ->
             -- TODO: implement the rest
@@ -303,6 +316,16 @@ stepUrl url model =
                             Nothing ->
                                 stepLogin model Login.init
                     )
+                , route (s "flash" </> s "deck" </> string)
+                    -- if no session present, show login
+                    (\deckId ->
+                        case maybeSession of
+                            Just session ->
+                                stepGame model (Game.init session deckId)
+
+                            Nothing ->
+                                stepLogin model Login.init
+                    )
                 ]
     in
     case Parser.parse parser url of
@@ -347,6 +370,7 @@ stepSettings mainModel ( pageModel, cmds ) =
     , Cmd.map SettingsMsg cmds
     )
 
+-- flashcard game
 
 stepFlashHome : Model -> ( FlashHome.Model, Cmd FlashHome.Msg ) -> ( Model, Cmd Msg )
 stepFlashHome mainModel ( pageModel, cmds ) =
@@ -360,6 +384,13 @@ stepDeckEditor mainModel ( pageModel, cmds ) =
     ( { mainModel | page = DeckEditor pageModel }
     , Cmd.map DeckEditorMsg cmds
     )
+
+stepGame : Model -> ( Game.Model, Cmd Game.Msg ) -> ( Model, Cmd Msg )
+stepGame mainModel ( pageModel, cmds ) =
+    ( { mainModel | page = Game pageModel }
+    , Cmd.map GameMsg cmds
+    )
+
 
 
 

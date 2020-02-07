@@ -75,6 +75,11 @@ deckEditRow toMsg edit info =
                         }
             , link
                 [ alignRight ]
+                { url = "/flash/deck/" ++ info.id
+                , label = text "Play"
+                }
+            , link
+                [ alignRight ]
                 { url = "/flash/deck/edit/" ++ info.id
                 , label = text "Edit"
                 }
