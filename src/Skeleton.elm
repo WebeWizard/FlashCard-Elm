@@ -93,7 +93,6 @@ view toSkelMsg maybeSession toDetailsMsg details =
                 , row
                     [ alignBottom
                     , width fill
-                    , height fill
                     , Background.color (rgb255 36 0 156)
                     ]
                     [ el [ Font.color (rgb255 255 255 255) ] (text "Footer") ]
