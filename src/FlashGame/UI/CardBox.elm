@@ -2,6 +2,7 @@ module FlashGame.UI.CardBox exposing (..)
 
 import Element exposing (Element, alignBottom, alignRight, centerX, centerY, column, el, fill, fillPortion, height, paddingXY, rgb255, row, scrollbarY, spaceEvenly, spacing, text, width)
 import Element.Background as Background
+import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
 import FlashGame.UI.CardEditRow exposing (Card)
@@ -17,8 +18,30 @@ type Msg
     | Score Int
 
 
-cardBox : (Msg -> msg) -> Card -> Mode -> Element msg
-cardBox toMsg cardInfo mode =
+scoreColor : Int -> Element.Color
+scoreColor score =
+    case score of
+        1 ->
+            rgb255 107 0 107
+
+        2 ->
+            rgb255 255 128 0
+
+        3 ->
+            rgb255 255 219 77
+
+        4 ->
+            rgb255 46 184 46
+
+        5 ->
+            rgb255 26 26 255
+
+        _ ->
+            rgb255 0 0 0
+
+
+cardBox : (Msg -> msg) -> Card -> Mode -> Int -> Element msg
+cardBox toMsg cardInfo mode curScore =
     let
         nextMode =
             case mode of
@@ -35,7 +58,12 @@ cardBox toMsg cardInfo mode =
         , spacing 10
         ]
         [ -- question/answer
-          button [ width fill, height (fillPortion 8) ]
+          button
+            [ width fill
+            , height (fillPortion 8)
+            , Border.color (scoreColor curScore)
+            , Border.widthEach { bottom = 7, left = 0, right = 0, top = 0 }
+            ]
             { onPress = Just (toMsg (ToggleMode nextMode))
             , label =
                 el [ centerX, centerY ]
@@ -53,30 +81,30 @@ cardBox toMsg cardInfo mode =
             [ width fill, alignBottom, height (fillPortion 2) ]
             [ case mode of
                 Question ->
-                    button [ height fill, width fill, Background.color (rgb255 0 0 0) ]
+                    button [ height fill, width fill, Background.color (scoreColor curScore) ]
                         { onPress = Just (toMsg (ToggleMode nextMode))
                         , label = el [ centerY, centerX, Font.color (rgb255 255 255 255) ] (text "Reveal")
                         }
 
                 Answer ->
                     row [ centerX, width fill, height fill, spaceEvenly ]
-                        [ button [ width fill, height fill, Background.color (rgb255 107 0 107) ]
+                        [ button [ width fill, height fill, Background.color (scoreColor 1) ]
                             { onPress = Just (toMsg (Score 1))
                             , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text "1")
                             }
-                        , button [ width fill, height fill, Background.color (rgb255 255 128 0) ]
+                        , button [ width fill, height fill, Background.color (scoreColor 2) ]
                             { onPress = Just (toMsg (Score 2))
                             , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text "2")
                             }
-                        , button [ width fill, height fill, Background.color (rgb255 255 219 77) ]
+                        , button [ width fill, height fill, Background.color (scoreColor 3) ]
                             { onPress = Just (toMsg (Score 3))
                             , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text "3")
                             }
-                        , button [ width fill, height fill, Background.color (rgb255 46 184 46) ]
+                        , button [ width fill, height fill, Background.color (scoreColor 4) ]
                             { onPress = Just (toMsg (Score 4))
                             , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text "4")
                             }
-                        , button [ width fill, height fill, Background.color (rgb255 26 26 255) ]
+                        , button [ width fill, height fill, Background.color (scoreColor 5) ]
                             { onPress = Just (toMsg (Score 5))
                             , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text "5")
                             }

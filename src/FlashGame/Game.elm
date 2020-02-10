@@ -6,6 +6,7 @@ import FlashGame.UI.CardEditRow exposing (Card, cardDecoder)
 import FlashGame.UI.DeckEditRow exposing (DeckInfo, deckInfoDecoder)
 import Http
 import Json.Decode as Decode exposing (field)
+import Json.Encode as Encode
 import List.Extra
 import Session exposing (Session, getHeader)
 import Skeleton
@@ -28,19 +29,45 @@ deckDecoder =
         (field "cards" (Decode.list cardDecoder))
 
 
+
+-- currently only getting scores that belong to logged in account
+
+
+type alias Score =
+    { cardId : String
+    , score : Int
+    }
+
+
+scoreDecoder : Decode.Decoder Score
+scoreDecoder =
+    Decode.map2 Score
+        (field "card_id" Decode.string)
+        (field "score" Decode.int)
+
+
 type alias Model =
     { session : Session
     , deckId : String
     , deck : Maybe Deck
     , curCard : Maybe Card
     , curMode : CardBox.Mode
+    , scores : Maybe (List Score)
     }
 
 
 init : Session -> String -> ( Model, Cmd Msg )
 init session deckId =
     -- initialize using deck Id and start fetching deck/cards
-    ( { session = session, deckId = deckId, deck = Nothing, curCard = Nothing, curMode = CardBox.Question }, loadDeck session deckId )
+    ( { session = session
+      , deckId = deckId
+      , deck = Nothing
+      , curCard = Nothing
+      , curMode = CardBox.Question
+      , scores = Nothing
+      }
+    , loadDeck session deckId
+    )
 
 
 
@@ -49,7 +76,8 @@ init session deckId =
 
 type Msg
     = GotDeck (Result Http.Error Deck)
-    | GotScore (Result Http.Error ())
+    | GotScores (Result Http.Error (List Score))
+    | GotUpdateScore String Int (Result Http.Error ())
     | CardBoxMsg CardBox.Msg
 
 
@@ -63,10 +91,57 @@ update msg model =
                         | deck = Just deck
                         , curCard = getNextCard deck model.curCard
                       }
-                    , Cmd.none
+                    , loadScores model.session model.deckId
                     )
 
                 Err error ->
+                    -- TODO: handle errors
+                    ( model, Cmd.none )
+
+        GotScores result ->
+            case result of
+                Ok scores ->
+                    ( { model | scores = Just scores }, Cmd.none )
+
+                Err error ->
+                    -- TODO: handle errors
+                    ( model, Cmd.none )
+
+        GotUpdateScore cardId newScore result ->
+            case result of
+                Ok () ->
+                    case model.scores of
+                        Just scores ->
+                            case model.deck of
+                                Just deck ->
+                                    -- if score exists, update it, otherwise insert a new one
+                                    case List.Extra.find (\s -> s.cardId == cardId) scores of
+                                        Just cardScore ->
+                                            ( { model
+                                                | scores = Just (List.Extra.updateIf (\s -> s.cardId == cardId) (\s -> { s | score = newScore }) scores)
+                                                , curCard = getNextCard deck model.curCard
+                                                , curMode = CardBox.Question
+                                              }
+                                            , Cmd.none
+                                            )
+
+                                        Nothing ->
+                                            ( { model
+                                                | scores = Just ({ cardId = cardId, score = newScore } :: scores)
+                                                , curCard = getNextCard deck model.curCard
+                                                , curMode = CardBox.Question
+                                              }
+                                            , Cmd.none
+                                            )
+
+                                Nothing ->
+                                    ( model, Cmd.none )
+
+                        Nothing ->
+                            ( { model | scores = Just [ { cardId = cardId, score = newScore } ] }, Cmd.none )
+
+                Err error ->
+                    -- TODO: handle errors
                     ( model, Cmd.none )
 
         CardBoxMsg cardBoxMsg ->
@@ -75,11 +150,12 @@ update msg model =
                     ( { model | curMode = newMode }, Cmd.none )
 
                 CardBox.Score newScore ->
-                    -- TODO: upload the score
-                    ( model, Cmd.none )
+                    case model.curCard of
+                        Just curCard ->
+                            ( model, updateScore model.session curCard.id newScore )
 
-        _ ->
-            ( model, Cmd.none )
+                        Nothing ->
+                            ( model, Cmd.none )
 
 
 getNextCard : Deck -> Maybe Card -> Maybe Card
@@ -114,7 +190,17 @@ view model =
             ]
             [ case model.curCard of
                 Just card ->
-                    cardBox CardBoxMsg card model.curMode
+                    case model.scores of
+                        Just scores ->
+                            case List.Extra.find (\s -> s.cardId == card.id) scores of
+                                Just curScore ->
+                                    cardBox CardBoxMsg card model.curMode curScore.score
+
+                                Nothing ->
+                                    cardBox CardBoxMsg card model.curMode 0
+
+                        Nothing ->
+                            cardBox CardBoxMsg card model.curMode 0
 
                 Nothing ->
                     text "No card available"
@@ -134,6 +220,37 @@ loadDeck session deckId =
         , url = "http://localhost:8080/deck/" ++ deckId -- urls should be constants stored somewhere else
         , body = Http.emptyBody
         , expect = Http.expectJson GotDeck deckDecoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+loadScores : Session -> String -> Cmd Msg
+loadScores session deckId =
+    Http.request
+        { method = "GET"
+        , headers = [ getHeader session ]
+        , url = "http://localhost:8080/deck/scores/" ++ deckId -- urls should be constants stored somewhere else
+        , body = Http.emptyBody
+        , expect = Http.expectJson GotScores (Decode.list scoreDecoder)
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+updateScore : Session -> String -> Int -> Cmd Msg
+updateScore session cardId newScore =
+    Http.request
+        { method = "POST"
+        , headers = [ getHeader session ]
+        , url = "http://localhost:8080/card/score" -- urls should be constants stored somewhere else
+        , body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "card_id", Encode.string cardId )
+                    , ( "score", Encode.int newScore )
+                    ]
+        , expect = Http.expectWhatever (GotUpdateScore cardId newScore)
         , timeout = Nothing
         , tracker = Nothing
         }

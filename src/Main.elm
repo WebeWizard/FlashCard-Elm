@@ -192,8 +192,7 @@ update message model =
             -- result probably doesn't matter.
             ( { model | session = Nothing }, Cmd.none )
 
-          -- flashcard game
-
+        -- flashcard game
         FlashHomeMsg msg ->
             case model.page of
                 FlashHome pageModel ->
@@ -370,7 +369,10 @@ stepSettings mainModel ( pageModel, cmds ) =
     , Cmd.map SettingsMsg cmds
     )
 
+
+
 -- flashcard game
+
 
 stepFlashHome : Model -> ( FlashHome.Model, Cmd FlashHome.Msg ) -> ( Model, Cmd Msg )
 stepFlashHome mainModel ( pageModel, cmds ) =
@@ -385,12 +387,12 @@ stepDeckEditor mainModel ( pageModel, cmds ) =
     , Cmd.map DeckEditorMsg cmds
     )
 
+
 stepGame : Model -> ( Game.Model, Cmd Game.Msg ) -> ( Model, Cmd Msg )
 stepGame mainModel ( pageModel, cmds ) =
     ( { mainModel | page = Game pageModel }
     , Cmd.map GameMsg cmds
     )
-
 
 
 

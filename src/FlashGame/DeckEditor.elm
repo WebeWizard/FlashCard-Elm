@@ -229,29 +229,28 @@ view model =
     , attrs = []
     , body =
         column [ paddingXY 80 8, width fill, scrollbarY ]
-            (
-                button
-                    [ alignRight ]
-                    { onPress =
-                        Just
-                            (CardEditRowMsg
-                                (CardEditRow.Edit CardEditRow.Question
-                                    { id = ""
-                                    , deckId = model.deckId
-                                    , question = ""
-                                    , answer = ""
-                                    , pos =
-                                        case model.deck of
-                                            Just deck ->
-                                                getNextPos deck.cards
+            (button
+                [ alignRight ]
+                { onPress =
+                    Just
+                        (CardEditRowMsg
+                            (CardEditRow.Edit CardEditRow.Question
+                                { id = ""
+                                , deckId = model.deckId
+                                , question = ""
+                                , answer = ""
+                                , pos =
+                                    case model.deck of
+                                        Just deck ->
+                                            getNextPos deck.cards
 
-                                            Nothing ->
-                                                1
-                                    }
-                                )
+                                        Nothing ->
+                                            1
+                                }
                             )
-                    , label = text "+New Card"
-                    }
+                        )
+                , label = text "+New Card"
+                }
                 :: (case model.edit of
                         Just editDetails ->
                             if editDetails.value.id == "" then
@@ -262,14 +261,14 @@ view model =
 
                         Nothing ->
                             text ""
-                    )
+                   )
                 :: (case model.deck of
                         Just deck ->
                             List.map (cardEditRow CardEditRowMsg model.edit) deck.cards
 
                         Nothing ->
                             []
-                    )
+                   )
             )
     }
 
