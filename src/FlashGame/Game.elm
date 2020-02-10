@@ -170,7 +170,8 @@ getNextCard : Deck -> Maybe Card -> Maybe Card
 getNextCard deck card =
     case card of
         Just curCard ->
-            case List.Extra.getAt (curCard.pos + 1) deck.cards of
+            -- since position index is 1 based (0 is reserved internally), pos of current card = index of next card
+            case List.Extra.getAt curCard.pos deck.cards of
                 Just nextCard ->
                     Just nextCard
 
