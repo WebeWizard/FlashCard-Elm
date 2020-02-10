@@ -6,6 +6,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input exposing (button)
 import FlashGame.UI.CardEditRow exposing (Card)
+import FlashGame.Utility exposing (scoreColor)
 
 
 type Mode
@@ -16,28 +17,6 @@ type Mode
 type Msg
     = ToggleMode Mode
     | Score Int
-
-
-scoreColor : Int -> Element.Color
-scoreColor score =
-    case score of
-        1 ->
-            rgb255 107 0 107
-
-        2 ->
-            rgb255 255 128 0
-
-        3 ->
-            rgb255 255 219 77
-
-        4 ->
-            rgb255 46 184 46
-
-        5 ->
-            rgb255 26 26 255
-
-        _ ->
-            rgb255 0 0 0
 
 
 cardBox : (Msg -> msg) -> Card -> Mode -> Int -> Element msg
