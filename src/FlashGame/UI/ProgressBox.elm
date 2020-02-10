@@ -65,6 +65,15 @@ progressBox maybeDeck maybeScores =
                                         ]
                                 )
                                 scoreCounts
+                            ++ [ row [ width fill ]
+                                    [ text "New"
+                                    , row [ width fill ]
+                                        [ el [ width (fillPortion (total - List.length scores)), Background.color (rgb255 200 200 200) ] (text "")
+                                        , el [ width (fillPortion (List.length scores)), Background.color (rgb255 255 255 255) ] (text "")
+                                        ]
+                                    , text (String.fromInt (total - List.length scores))
+                                    ]
+                               ]
                         )
 
                 Nothing ->
