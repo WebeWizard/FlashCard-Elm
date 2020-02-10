@@ -4,6 +4,7 @@ import Element exposing (alignRight, column, fill, height, paddingXY, row, scrol
 import FlashGame.UI.CardBox as CardBox exposing (cardBox)
 import FlashGame.UI.CardEditRow exposing (Card, cardDecoder)
 import FlashGame.UI.DeckEditRow exposing (DeckInfo, deckInfoDecoder)
+import FlashGame.UI.ProgressBox as ProgressBox exposing (progressBox)
 import Http
 import Json.Decode as Decode exposing (field)
 import Json.Encode as Encode
@@ -89,7 +90,6 @@ update msg model =
                 Ok deck ->
                     ( { model
                         | deck = Just deck
-                        , curCard = getNextCard deck model.curCard
                       }
                     , loadScores model.session model.deckId
                     )
@@ -101,7 +101,15 @@ update msg model =
         GotScores result ->
             case result of
                 Ok scores ->
-                    ( { model | scores = Just scores }, Cmd.none )
+                    case model.deck of
+                        Just deck ->
+                            ( { model
+                                | scores = Just scores
+                                , curCard = getNextCard deck model.curCard
+                            }
+                            , Cmd.none
+                            )
+                        Nothing -> ( model, Cmd.none )
 
                 Err error ->
                     -- TODO: handle errors
@@ -187,8 +195,10 @@ view model =
             , paddingXY 80 8
             , width fill
             , scrollbarY
+            , spacing 20
             ]
-            [ case model.curCard of
+            [ (progressBox model.deck model.scores)
+            ,case model.curCard of
                 Just card ->
                     case model.scores of
                         Just scores ->
