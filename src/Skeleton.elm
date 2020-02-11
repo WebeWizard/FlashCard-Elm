@@ -86,7 +86,7 @@ view toSkelMsg maybeSession toDetailsMsg details =
                     , height
                         (fill
                             |> minimum 100
-                            |> maximum 600
+                            |> maximum 800
                         )
                     ]
                     (Element.map toDetailsMsg details.body)

@@ -7,19 +7,19 @@ scoreColor : Int -> Color
 scoreColor score =
     case score of
         1 ->
-            rgb255 107 0 107
+            rgb255 170 0 128
 
         2 ->
-            rgb255 255 128 0
+            rgb255 255 138 71
 
         3 ->
-            rgb255 255 219 77
+            rgb255 255 221 0
 
         4 ->
-            rgb255 46 184 46
+            rgb255 127 174 46
 
         5 ->
-            rgb255 26 26 255
+            rgb255 0 168 215
 
         _ ->
-            rgb255 0 0 0
+            rgb255 36 48 67

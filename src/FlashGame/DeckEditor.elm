@@ -1,7 +1,7 @@
 module FlashGame.DeckEditor exposing (..)
 
 import Browser.Dom as Dom exposing (Error, focus)
-import Element exposing (alignRight, column, fill, height, paddingXY, row, scrollbarY, spacing, text, width)
+import Element exposing (alignLeft, alignRight, column, fill, height, link, paddingXY, row, scrollbarY, spacing, text, width)
 import Element.Input exposing (button)
 import FlashGame.UI.CardEditRow as CardEditRow exposing (Card, EditDetails, EditMode, Msg, cardDecoder, cardEditRow, cardEncoder)
 import FlashGame.UI.DeckEditRow exposing (DeckInfo, deckInfoDecoder)
@@ -229,7 +229,12 @@ view model =
     , attrs = []
     , body =
         column [ paddingXY 80 8, width fill, scrollbarY ]
-            (button
+            ([ link
+                [ alignLeft ]
+                { url = "/flash"
+                , label = text "< Deck List"
+                }
+             , button
                 [ alignRight ]
                 { onPress =
                     Just
@@ -251,18 +256,18 @@ view model =
                         )
                 , label = text "+New Card"
                 }
-                :: (case model.edit of
-                        Just editDetails ->
-                            if editDetails.value.id == "" then
-                                cardEditRow CardEditRowMsg model.edit editDetails.value
+             , case model.edit of
+                Just editDetails ->
+                    if editDetails.value.id == "" then
+                        cardEditRow CardEditRowMsg model.edit editDetails.value
 
-                            else
-                                text ""
+                    else
+                        text ""
 
-                        Nothing ->
-                            text ""
-                   )
-                :: (case model.deck of
+                Nothing ->
+                    text ""
+             ]
+                ++ (case model.deck of
                         Just deck ->
                             List.map (cardEditRow CardEditRowMsg model.edit) deck.cards
 

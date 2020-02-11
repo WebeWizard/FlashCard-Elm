@@ -1,6 +1,6 @@
 module FlashGame.UI.CardBox exposing (..)
 
-import Element exposing (Element, alignBottom, alignRight, centerX, centerY, column, el, fill, fillPortion, height, paddingXY, rgb255, row, scrollbarY, spaceEvenly, spacing, text, width)
+import Element exposing (Decoration, Element, alignBottom, alignRight, centerX, centerY, column, el, fill, fillPortion, height, paddingXY, rgb255, row, scrollbarY, spaceEvenly, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -42,10 +42,17 @@ cardBox toMsg cardInfo mode curScore =
             , height (fillPortion 8)
             , Border.color (scoreColor curScore)
             , Border.widthEach { bottom = 7, left = 0, right = 0, top = 0 }
+            , Border.shadow
+                { offset = ( 0, 0 )
+                , size = 0
+                , blur = 3
+                , color = rgb255 200 200 200
+                }
+            , Element.focused [ Border.glow (rgb255 0 0 0) 0 ]
             ]
             { onPress = Just (toMsg (ToggleMode nextMode))
             , label =
-                el [ centerX, centerY ]
+                el [ centerX, centerY, Font.size 36 ]
                     (text
                         (case mode of
                             Question ->
@@ -57,36 +64,43 @@ cardBox toMsg cardInfo mode curScore =
                     )
             }
         , row
-            [ width fill, alignBottom, height (fillPortion 2) ]
+            [ width fill
+            , alignBottom
+            , height (fillPortion 2)
+            , Border.shadow
+                { offset = ( 0, 0 )
+                , size = 0
+                , blur = 3
+                , color = rgb255 200 200 200
+                }
+            ]
             [ case mode of
                 Question ->
-                    button [ height fill, width fill, Background.color (scoreColor curScore) ]
+                    button
+                        [ height fill
+                        , width fill
+                        , Background.color (scoreColor curScore)
+                        , Element.focused [ Border.glow (rgb255 0 0 0) 0 ]
+                        ]
                         { onPress = Just (toMsg (ToggleMode nextMode))
                         , label = el [ centerY, centerX, Font.color (rgb255 255 255 255) ] (text "Reveal")
                         }
 
                 Answer ->
                     row [ centerX, width fill, height fill, spaceEvenly ]
-                        [ button [ width fill, height fill, Background.color (scoreColor 1) ]
-                            { onPress = Just (toMsg (Score 1))
-                            , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text "1")
-                            }
-                        , button [ width fill, height fill, Background.color (scoreColor 2) ]
-                            { onPress = Just (toMsg (Score 2))
-                            , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text "2")
-                            }
-                        , button [ width fill, height fill, Background.color (scoreColor 3) ]
-                            { onPress = Just (toMsg (Score 3))
-                            , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text "3")
-                            }
-                        , button [ width fill, height fill, Background.color (scoreColor 4) ]
-                            { onPress = Just (toMsg (Score 4))
-                            , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text "4")
-                            }
-                        , button [ width fill, height fill, Background.color (scoreColor 5) ]
-                            { onPress = Just (toMsg (Score 5))
-                            , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text "5")
-                            }
-                        ]
+                        (List.map
+                            (\score ->
+                                button
+                                    [ width fill
+                                    , height fill
+                                    , Background.color (scoreColor score)
+                                    , Element.focused [ Border.glow (rgb255 0 0 0) 0 ]
+                                    ]
+                                    { onPress = Just (toMsg (Score score))
+                                    , label = el [ centerX, centerY, Font.color (rgb255 255 255 255) ] (text (String.fromInt score))
+                                    }
+                            )
+                            [ 1, 2, 3, 4, 5 ]
+                        )
             ]
         ]

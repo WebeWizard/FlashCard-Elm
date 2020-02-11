@@ -1,6 +1,6 @@
 module FlashGame.Game exposing (..)
 
-import Element exposing (alignRight, column, fill, height, paddingXY, row, scrollbarY, spacing, text, width)
+import Element exposing (alignLeft, alignRight, column, fill, height, link, paddingXY, row, scrollbarY, spacing, text, width)
 import FlashGame.UI.CardBox as CardBox exposing (cardBox)
 import FlashGame.UI.CardEditRow exposing (Card, cardDecoder)
 import FlashGame.UI.DeckEditRow exposing (DeckInfo, deckInfoDecoder)
@@ -106,10 +106,12 @@ update msg model =
                             ( { model
                                 | scores = Just scores
                                 , curCard = getNextCard deck model.curCard
-                            }
+                              }
                             , Cmd.none
                             )
-                        Nothing -> ( model, Cmd.none )
+
+                        Nothing ->
+                            ( model, Cmd.none )
 
                 Err error ->
                     -- TODO: handle errors
@@ -191,30 +193,42 @@ view model =
     { title = "Deck Editor"
     , attrs = []
     , body =
-        row
+        column
             [ height fill
-            , paddingXY 80 8
             , width fill
             , scrollbarY
             , spacing 20
             ]
-            [ (progressBox model.deck model.scores)
-            ,case model.curCard of
-                Just card ->
-                    case model.scores of
-                        Just scores ->
-                            case List.Extra.find (\s -> s.cardId == card.id) scores of
-                                Just curScore ->
-                                    cardBox CardBoxMsg card model.curMode curScore.score
+            [ link
+                [ alignLeft, paddingXY 80 0 ]
+                { url = "/flash"
+                , label = text "< Deck List"
+                }
+            , row
+                [ height fill
+                , width fill
+                , scrollbarY
+                , spacing 20
+                , paddingXY 80 5
+                ]
+                [ progressBox model.deck model.scores
+                , case model.curCard of
+                    Just card ->
+                        case model.scores of
+                            Just scores ->
+                                case List.Extra.find (\s -> s.cardId == card.id) scores of
+                                    Just curScore ->
+                                        cardBox CardBoxMsg card model.curMode curScore.score
 
-                                Nothing ->
-                                    cardBox CardBoxMsg card model.curMode 0
+                                    Nothing ->
+                                        cardBox CardBoxMsg card model.curMode 0
 
-                        Nothing ->
-                            cardBox CardBoxMsg card model.curMode 0
+                            Nothing ->
+                                cardBox CardBoxMsg card model.curMode 0
 
-                Nothing ->
-                    text "No card available"
+                    Nothing ->
+                        text "No card available"
+                ]
             ]
     }
 
