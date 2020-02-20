@@ -63,9 +63,6 @@ update msg model =
 
                 Err error ->
                     let
-                        asdf =
-                            Debug.log "error" error
-
                         errorText =
                             case error of
                                 Http.BadStatus status ->
