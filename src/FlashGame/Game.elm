@@ -1,5 +1,6 @@
 module FlashGame.Game exposing (..)
 
+import Constants exposing (Constants)
 import Element exposing (alignLeft, alignRight, column, fill, height, link, paddingXY, row, scrollbarY, spacing, text, width)
 import FlashGame.UI.CardBox as CardBox exposing (cardBox)
 import FlashGame.UI.CardEditRow exposing (Card, cardDecoder)
@@ -48,7 +49,8 @@ scoreDecoder =
 
 
 type alias Model =
-    { session : Session
+    { constants : Constants
+    , session : Session
     , deckId : String
     , deck : Maybe Deck
     , curCard : Maybe Card
@@ -57,17 +59,18 @@ type alias Model =
     }
 
 
-init : Session -> String -> ( Model, Cmd Msg )
-init session deckId =
+init : Constants -> Session -> String -> ( Model, Cmd Msg )
+init constants session deckId =
     -- initialize using deck Id and start fetching deck/cards
-    ( { session = session
+    ( { constants = constants
+      , session = session
       , deckId = deckId
       , deck = Nothing
       , curCard = Nothing
       , curMode = CardBox.Question
       , scores = Nothing
       }
-    , loadDeck session deckId
+    , loadDeck constants session deckId
     )
 
 
@@ -91,7 +94,7 @@ update msg model =
                     ( { model
                         | deck = Just deck
                       }
-                    , loadScores model.session model.deckId
+                    , loadScores model.constants model.session model.deckId
                     )
 
                 Err error ->
@@ -162,7 +165,7 @@ update msg model =
                 CardBox.Score newScore ->
                     case model.curCard of
                         Just curCard ->
-                            ( model, updateScore model.session curCard.id newScore )
+                            ( model, updateScore model.constants model.session curCard.id newScore )
 
                         Nothing ->
                             ( model, Cmd.none )
@@ -237,12 +240,12 @@ view model =
 -- HTTP
 
 
-loadDeck : Session -> String -> Cmd Msg
-loadDeck session deckId =
+loadDeck : Constants -> Session -> String -> Cmd Msg
+loadDeck constants session deckId =
     Http.request
         { method = "GET"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/deck/" ++ deckId -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/deck/" ++ deckId -- urls should be constants stored somewhere else
         , body = Http.emptyBody
         , expect = Http.expectJson GotDeck deckDecoder
         , timeout = Nothing
@@ -250,12 +253,12 @@ loadDeck session deckId =
         }
 
 
-loadScores : Session -> String -> Cmd Msg
-loadScores session deckId =
+loadScores : Constants -> Session -> String -> Cmd Msg
+loadScores constants session deckId =
     Http.request
         { method = "GET"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/deck/scores/" ++ deckId -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/deck/scores/" ++ deckId -- urls should be constants stored somewhere else
         , body = Http.emptyBody
         , expect = Http.expectJson GotScores (Decode.list scoreDecoder)
         , timeout = Nothing
@@ -263,12 +266,12 @@ loadScores session deckId =
         }
 
 
-updateScore : Session -> String -> Int -> Cmd Msg
-updateScore session cardId newScore =
+updateScore : Constants -> Session -> String -> Int -> Cmd Msg
+updateScore constants session cardId newScore =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/card/score" -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/card/score" -- urls should be constants stored somewhere else
         , body =
             Http.jsonBody <|
                 Encode.object

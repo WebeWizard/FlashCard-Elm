@@ -1,5 +1,6 @@
 module Pages.SignUp exposing (Model, Msg, init, update, view)
 
+import Constants exposing (Constants)
 import Element exposing (centerX, column, paddingXY, rgb255, spacing, text)
 import Element.Background as Background
 import Element.Border as Border
@@ -14,7 +15,8 @@ import Skeleton
 
 
 type alias Model =
-    { email : String
+    { constants : Constants
+    , email : String
     , secret : String
     , verify : String
     , error : Maybe String
@@ -25,9 +27,10 @@ type alias Model =
 -- INIT
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { email = ""
+init : Constants -> ( Model, Cmd Msg )
+init constants =
+    ( { constants = constants
+      , email = ""
       , secret = ""
       , verify = ""
       , error = Nothing
@@ -134,7 +137,7 @@ view model =
 signup : Model -> Cmd Msg
 signup model =
     Http.post
-        { url = "http://localhost:8080/account/create"
+        { url = model.constants.publicUrl ++ "/account/create"
         , body =
             Encode.object
                 [ ( "email", Encode.string model.email )

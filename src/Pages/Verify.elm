@@ -1,5 +1,6 @@
 module Pages.Verify exposing (Model, Msg, init, update, view)
 
+import Constants exposing (Constants)
 import Element exposing (centerX, centerY, column, el, height, paddingXY, px, rgb255, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
@@ -16,16 +17,17 @@ import Skeleton exposing (Details)
 
 
 type alias Model =
-    { code : String
+    { constants : Constants
+    , code : String
     , email : String
     , secret : String
     , error : Maybe String
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { code = "", email = "", secret = "", error = Nothing }, Cmd.none )
+init : Constants -> ( Model, Cmd Msg )
+init constants =
+    ( { constants = constants, code = "", email = "", secret = "", error = Nothing }, Cmd.none )
 
 
 
@@ -133,7 +135,7 @@ view model =
 verify : Model -> Cmd Msg
 verify model =
     Http.post
-        { url = "http://localhost:8080/account/verify"
+        { url = model.constants.publicUrl ++ "/account/verify"
         , body =
             Encode.object
                 [ ( "code", Encode.string model.code )

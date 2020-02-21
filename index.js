@@ -1,13 +1,19 @@
 import { Elm } from './src/Main.elm'
 import Constants from './constants.js'
 
+const constants = {
+  publicUrl: process.env.PUBLIC_URL
+};
+
+
 var existingSession = JSON.parse(localStorage.getItem(Constants.storageKeys.session))
 
 var flags = {
   // TODO: split constants into multiple parts with defined shapes
   // so they can be decoded inside of elm
   //"constants": Constants,
-  "session": existingSession
+  "session": existingSession,
+  "constants": constants
 }
 
 var app = Elm.Main.init({

@@ -1,5 +1,6 @@
 module Pages.Login exposing (Model, Msg, init, update, view)
 
+import Constants exposing (Constants)
 import Element exposing (centerX, centerY, column, el, height, paddingXY, px, rgb255, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
@@ -16,15 +17,16 @@ import Skeleton exposing (Details)
 
 
 type alias Model =
-    { email : String
+    { constants : Constants
+    , email : String
     , secret : String
     , error : Maybe String
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { email = "", secret = "", error = Nothing }, Cmd.none )
+init : Constants -> ( Model, Cmd Msg )
+init constants =
+    ( { constants = constants, email = "", secret = "", error = Nothing }, Cmd.none )
 
 
 
@@ -131,7 +133,7 @@ view model =
 login : Model -> Cmd Msg
 login model =
     Http.post
-        { url = "http://localhost:8080/login" -- urls should be constants stored somewhere else
+        { url = model.constants.publicUrl ++ "/login" -- urls should be constants stored somewhere else
         , body =
             Encode.object
                 [ ( "email", Encode.string model.email )

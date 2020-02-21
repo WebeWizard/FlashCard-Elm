@@ -1,14 +1,18 @@
 module Flags exposing (FlagModel, decoder)
 
-import Json.Decode as Decode exposing (Value, decodeValue, field, map, nullable)
+import Constants exposing (Constants)
+import Json.Decode as Decode exposing (field, nullable)
 import Session exposing (Session)
 
 
 type alias FlagModel =
-    { session : Maybe Session }
+    { constants : Constants
+    , session : Maybe Session
+    }
 
 
 decoder : Decode.Decoder FlagModel
 decoder =
-    Decode.map FlagModel
+    Decode.map2 FlagModel
+        (field "constants" Constants.decoder)
         (field "session" (nullable Session.decoder))

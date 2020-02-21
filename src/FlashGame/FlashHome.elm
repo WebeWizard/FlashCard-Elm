@@ -1,6 +1,7 @@
 module FlashGame.FlashHome exposing (Model, Msg, init, update, view)
 
 import Browser.Dom as Dom exposing (Error, focus)
+import Constants exposing (Constants)
 import Element exposing (alignRight, column, fill, height, paddingXY, row, scrollbarY, spacing, text, width)
 import Element.Input exposing (button)
 import FlashGame.UI.DeckEditRow as DeckEditRow exposing (DeckInfo, EditDetails, EditMode(..), Msg(..), deckEditRow, deckInfoDecoder)
@@ -22,17 +23,23 @@ type Mode
 
 
 type alias Model =
-    { session : Session
+    { constants : Constants
+    , session : Session
     , mode : Mode
     , decks : List DeckInfo
     , edit : Maybe EditDetails
     }
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
-    ( { session = session, mode = DeckList, decks = [], edit = Nothing }
-    , loadDecks session
+init : Constants -> Session -> ( Model, Cmd Msg )
+init constants session =
+    ( { constants = constants
+      , session = session
+      , mode = DeckList
+      , decks = []
+      , edit = Nothing
+      }
+    , loadDecks constants session
     )
 
 
@@ -125,7 +132,7 @@ update msg model =
 
                                 else
                                     -- start uploading new deck
-                                    ( { model | edit = Just { editDetails | mode = Uploading } }, newDeck model.session editDetails )
+                                    ( { model | edit = Just { editDetails | mode = Uploading } }, newDeck model.constants model.session editDetails )
 
                             else
                                 case List.Extra.find (\orig -> orig.id == editDetails.id && orig.name == editDetails.tempName) model.decks of
@@ -135,13 +142,13 @@ update msg model =
 
                                     Nothing ->
                                         -- Initiate a name change against the server
-                                        ( { model | edit = Just { editDetails | mode = Uploading } }, renameDeck model.session editDetails )
+                                        ( { model | edit = Just { editDetails | mode = Uploading } }, renameDeck model.constants model.session editDetails )
 
                         Nothing ->
                             ( model, Cmd.none )
 
                 Delete info ->
-                    ( model, deleteDeck model.session info )
+                    ( model, deleteDeck model.constants model.session info )
 
                 _ ->
                     ( model, Cmd.none )
@@ -186,12 +193,12 @@ view model =
 -- HTTP
 
 
-loadDecks : Session -> Cmd Msg
-loadDecks session =
+loadDecks : Constants -> Session -> Cmd Msg
+loadDecks constants session =
     Http.request
         { method = "GET"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/decks" -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/decks" -- urls should be constants stored somewhere else
         , body = Http.emptyBody
         , expect = Http.expectJson GotDecks (Decode.list deckInfoDecoder)
         , timeout = Nothing
@@ -199,12 +206,12 @@ loadDecks session =
         }
 
 
-renameDeck : Session -> EditDetails -> Cmd Msg
-renameDeck session editDetails =
+renameDeck : Constants -> Session -> EditDetails -> Cmd Msg
+renameDeck constants session editDetails =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/deck/rename" -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/deck/rename" -- urls should be constants stored somewhere else
         , body =
             Http.jsonBody <|
                 Encode.object
@@ -217,12 +224,12 @@ renameDeck session editDetails =
         }
 
 
-newDeck : Session -> EditDetails -> Cmd Msg
-newDeck session editDetails =
+newDeck : Constants -> Session -> EditDetails -> Cmd Msg
+newDeck constants session editDetails =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/deck/create" -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/deck/create" -- urls should be constants stored somewhere else
         , body =
             Http.jsonBody <|
                 Encode.object
@@ -233,12 +240,12 @@ newDeck session editDetails =
         }
 
 
-deleteDeck : Session -> DeckInfo -> Cmd Msg
-deleteDeck session info =
+deleteDeck : Constants -> Session -> DeckInfo -> Cmd Msg
+deleteDeck constants session info =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/deck/delete" -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/deck/delete" -- urls should be constants stored somewhere else
         , body =
             Http.jsonBody <|
                 Encode.object

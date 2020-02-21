@@ -1,6 +1,7 @@
 module FlashGame.DeckEditor exposing (..)
 
 import Browser.Dom as Dom exposing (Error, focus)
+import Constants exposing (Constants)
 import Element exposing (alignLeft, alignRight, column, fill, height, link, paddingXY, row, scrollbarY, spacing, text, width)
 import Element.Input exposing (button)
 import FlashGame.UI.CardEditRow as CardEditRow exposing (Card, EditDetails, EditMode, Msg, cardDecoder, cardEditRow, cardEncoder)
@@ -32,17 +33,25 @@ deckDecoder =
 
 
 type alias Model =
-    { session : Session
+    { constants : Constants
+    , session : Session
     , deckId : String
     , deck : Maybe Deck
     , edit : Maybe EditDetails
     }
 
 
-init : Session -> String -> ( Model, Cmd Msg )
-init session deckId =
+init : Constants -> Session -> String -> ( Model, Cmd Msg )
+init constants session deckId =
     -- initialize using deck Id and start fetching deck/cards
-    ( { session = session, deckId = deckId, deck = Nothing, edit = Nothing }, loadDeck session deckId )
+    ( { constants = constants
+      , session = session
+      , deckId = deckId
+      , deck = Nothing
+      , edit = Nothing
+      }
+    , loadDeck constants session deckId
+    )
 
 
 
@@ -176,16 +185,16 @@ update msg model =
 
                                         else
                                             -- start uploading new card
-                                            ( { model | edit = Just { editDetails | mode = CardEditRow.Uploading } }, newCard model.session editDetails )
+                                            ( { model | edit = Just { editDetails | mode = CardEditRow.Uploading } }, newCard model.constants model.session editDetails )
 
                                     else
                                         case List.Extra.find (\orig -> orig.id == editDetails.value.id) deck.cards of
                                             Just origCard ->
                                                 if editDetails.value.pos /= origCard.pos then
-                                                    ( { model | edit = Just { editDetails | mode = CardEditRow.Uploading } }, updatePos model.session editDetails origCard )
+                                                    ( { model | edit = Just { editDetails | mode = CardEditRow.Uploading } }, updatePos model.constants model.session editDetails origCard )
 
                                                 else if editDetails.value /= origCard then
-                                                    ( { model | edit = Just { editDetails | mode = CardEditRow.Uploading } }, updateCard model.session editDetails )
+                                                    ( { model | edit = Just { editDetails | mode = CardEditRow.Uploading } }, updateCard model.constants model.session editDetails )
 
                                                 else
                                                     -- just stop editing
@@ -199,7 +208,7 @@ update msg model =
                                     ( model, Cmd.none )
 
                         CardEditRow.Delete info ->
-                            ( model, deleteCard model.session info )
+                            ( model, deleteCard model.constants model.session info )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -282,12 +291,12 @@ view model =
 -- HTTP
 
 
-loadDeck : Session -> String -> Cmd Msg
-loadDeck session deckId =
+loadDeck : Constants -> Session -> String -> Cmd Msg
+loadDeck constants session deckId =
     Http.request
         { method = "GET"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/deck/" ++ deckId -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/deck/" ++ deckId -- urls should be constants stored somewhere else
         , body = Http.emptyBody
         , expect = Http.expectJson GotDeck deckDecoder
         , timeout = Nothing
@@ -295,12 +304,12 @@ loadDeck session deckId =
         }
 
 
-newCard : Session -> EditDetails -> Cmd Msg
-newCard session editDetails =
+newCard : Constants -> Session -> EditDetails -> Cmd Msg
+newCard constants session editDetails =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/card/create" -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/card/create" -- urls should be constants stored somewhere else
         , body =
             Http.jsonBody <|
                 cardEncoder editDetails.value
@@ -310,12 +319,12 @@ newCard session editDetails =
         }
 
 
-updateCard : Session -> EditDetails -> Cmd Msg
-updateCard session editDetails =
+updateCard : Constants -> Session -> EditDetails -> Cmd Msg
+updateCard constants session editDetails =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/card/update" -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/card/update" -- urls should be constants stored somewhere else
         , body =
             Http.jsonBody <|
                 cardEncoder editDetails.value
@@ -325,12 +334,12 @@ updateCard session editDetails =
         }
 
 
-updatePos : Session -> EditDetails -> Card -> Cmd Msg
-updatePos session editDetails origCard =
+updatePos : Constants -> Session -> EditDetails -> Card -> Cmd Msg
+updatePos constants session editDetails origCard =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/card/updatepos" -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/card/updatepos" -- urls should be constants stored somewhere else
         , body =
             Http.jsonBody <|
                 Encode.object
@@ -345,12 +354,12 @@ updatePos session editDetails origCard =
         }
 
 
-deleteCard : Session -> Card -> Cmd Msg
-deleteCard session info =
+deleteCard : Constants -> Session -> Card -> Cmd Msg
+deleteCard constants session info =
     Http.request
         { method = "POST"
         , headers = [ getHeader session ]
-        , url = "http://localhost:8080/card/delete" -- urls should be constants stored somewhere else
+        , url = constants.publicUrl ++ "/card/delete" -- urls should be constants stored somewhere else
         , body =
             Http.jsonBody <|
                 Encode.object

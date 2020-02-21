@@ -5,6 +5,7 @@ port module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
+import Constants exposing (Constants)
 import Flags
 import FlashGame.DeckEditor as DeckEditor exposing (Model)
 import FlashGame.FlashHome as FlashHome exposing (Model)
@@ -48,6 +49,7 @@ type alias Model =
     { key : Nav.Key
     , page : Page
     , session : Maybe Session
+    , constants : Constants
     }
 
 
@@ -76,6 +78,7 @@ init flagJson url key =
                 { key = key
                 , page = NotFound
                 , session = flags.session
+                , constants = flags.constants
                 }
 
         Err _ ->
@@ -84,6 +87,9 @@ init flagJson url key =
                 { key = key
                 , page = NotFound
                 , session = Nothing
+                , constants =
+                    { publicUrl = ""
+                    }
                 }
 
 
@@ -151,7 +157,7 @@ update message model =
                     case model.session of
                         Just session ->
                             -- Return to Landing page
-                            ( Tuple.first (stepLanding model Landing.init), batch [ logout session, Session.store Nothing, Nav.pushUrl model.key "/" ] )
+                            ( Tuple.first (stepLanding model Landing.init), batch [ logout model.constants session, Session.store Nothing, Nav.pushUrl model.key "/" ] )
 
                         Nothing ->
                             ( model, Nav.pushUrl model.key "/" )
@@ -291,39 +297,39 @@ stepUrl url model =
                 [ route top
                     (stepLanding model Landing.init)
                 , route (s "signup")
-                    (stepSignUp model SignUp.init)
+                    (stepSignUp model (SignUp.init model.constants))
                 , route (s "login")
-                    (stepLogin model Login.init)
+                    (stepLogin model (Login.init model.constants))
                 , route (s "verify" </> string)
-                    (stepVerify model Verify.init)
+                    (stepVerify model (Verify.init model.constants))
                 , route (s "flash")
                     -- if no session present, show login
                     (case maybeSession of
                         Just session ->
-                            stepFlashHome model (FlashHome.init session)
+                            stepFlashHome model (FlashHome.init model.constants session)
 
                         Nothing ->
-                            stepLogin model Login.init
+                            stepLogin model (Login.init model.constants)
                     )
                 , route (s "flash" </> s "deck" </> s "edit" </> string)
                     -- if no session present, show login
                     (\deckId ->
                         case maybeSession of
                             Just session ->
-                                stepDeckEditor model (DeckEditor.init session deckId)
+                                stepDeckEditor model (DeckEditor.init model.constants session deckId)
 
                             Nothing ->
-                                stepLogin model Login.init
+                                stepLogin model (Login.init model.constants)
                     )
                 , route (s "flash" </> s "deck" </> string)
                     -- if no session present, show login
                     (\deckId ->
                         case maybeSession of
                             Just session ->
-                                stepGame model (Game.init session deckId)
+                                stepGame model (Game.init model.constants session deckId)
 
                             Nothing ->
-                                stepLogin model Login.init
+                                stepLogin model (Login.init model.constants)
                     )
                 ]
     in
@@ -415,10 +421,10 @@ port updateSession : (Value -> msg) -> Sub msg
 -- HTTP
 
 
-logout : Session -> Cmd Msg
-logout session =
+logout : Constants -> Session -> Cmd Msg
+logout constants session =
     Http.post
-        { url = "http://localhost:8080/logout/"
+        { url = constants.publicUrl ++ "/logout"
         , body =
             Encode.object
                 [ ( "token", Encode.string session.token )
