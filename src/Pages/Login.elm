@@ -7,7 +7,9 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input exposing (button, currentPassword, labelHidden, placeholder, username)
 import Http
+import Html.Events
 import Json.Encode as Encode
+import Json.Decode as Decode
 import Session exposing (Session)
 import Skeleton exposing (Details)
 
@@ -85,6 +87,22 @@ update msg model =
 
 -- VIEW
 
+onEnter : msg -> Element.Attribute msg
+onEnter msg =
+    Element.htmlAttribute
+        (Html.Events.on "keyup"
+            (Decode.field "key" Decode.string
+                |> Decode.andThen
+                    (\key ->
+                        if key == "Enter" then
+                            Decode.succeed msg
+
+                        else
+                            Decode.fail "Not the enter key"
+                    )
+            )
+        )
+
 
 view : Model -> Skeleton.Details Msg
 view model =
@@ -92,13 +110,13 @@ view model =
     , attrs = []
     , body =
         column [ centerX, spacing 10 ]
-            ([ username []
+            ([ username [ onEnter Login ]
                 { onChange = Email
                 , placeholder = Just (placeholder [] (text "Email Address"))
                 , label = labelHidden "Email Address"
                 , text = model.email
                 }
-             , currentPassword []
+             , currentPassword [ onEnter Login ]
                 { onChange = Secret
                 , placeholder = Just (placeholder [] (text "Password"))
                 , label = labelHidden "Password"
