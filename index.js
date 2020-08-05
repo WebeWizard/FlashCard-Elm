@@ -2,7 +2,7 @@ import { Elm } from './src/Main.elm'
 import Constants from './constants.js'
 
 const constants = {
-  publicUrl: process.env.PUBLIC_URL
+  publicUrl: process.env.HOST_URL
 };
 
 
